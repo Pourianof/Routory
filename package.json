@@ -1,0 +1,14 @@
+{
+  "name": "router",
+  "version": "1.0.0",
+  "description": "A semi expressJs routing functionality with different implementation and free environment use",
+  "main": "src/appRouter.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Pooria",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.8.7"
+  }
+}
