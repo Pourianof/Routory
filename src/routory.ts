@@ -60,7 +60,7 @@ export default class Routory<
   }
 
   route(path: string) {
-    const newRouter = new Routory();
+    const newRouter = new Routory<CTX>();
     this.use(path, newRouter);
     return newRouter;
   }
@@ -69,7 +69,7 @@ export default class Routory<
     path: string,
     ...RouteHandlerCallback: RouteHandlerCallback<R>[]
   ): Routory<CTX>;
-  use(path: string, RouteHandlerCallback: Routory): Routory<CTX>;
+  use(path: string, RouteHandlerCallback: Routory<CTX>): Routory<CTX>;
   use(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
   use(router: Routory, path?: undefined): Routory<CTX>;
   use(p: any, r: any) {
@@ -108,7 +108,7 @@ export default class Routory<
     path: string,
     ...RouteHandlerCallback: RouteHandlerCallback<R>[]
   ): Routory<CTX>;
-  push(path: string, RouteHandlerCallback: Routory): Routory<CTX>;
+  push(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
   push(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.PUSH);
   }
