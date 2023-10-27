@@ -1,18 +1,21 @@
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 
-export type RouteHandlerCallback = (
-  req: RouterRequest,
+export type RouteHandlerCallback<R extends RouterRequest = RouterRequest> = (
+  req: R,
   res: RouterRespond,
   next: () => void
 ) => void;
 
-export interface RouteHandler {
-  cb: RouteHandlerCallback;
+export interface RouteHandler<R extends RouterRequest = RouterRequest> {
+  cb: RouteHandlerCallback<R>;
   method: RequestMethods | 'use';
 }
 
-export default abstract class Router {
+export default abstract class Router<
+  CTX extends {} = {},
+  R extends RouterRequest<CTX> = RouterRequest<CTX>,
+> {
   static pathSeperator = '/';
   protected static pathNormalizing(path: string) {
     path = path.trim();
@@ -25,7 +28,7 @@ export default abstract class Router {
     return path;
   }
 
-  protected handlersQueue: (RouteHandler | Router)[] = [];
+  protected handlersQueue: (RouteHandler<R> | Router<CTX>)[] = [];
   protected _path: string = '';
   protected hasParam = false;
   protected set path(p: string) {
@@ -76,7 +79,7 @@ export default abstract class Router {
       });
     }
 
-    let next: Router | RouteHandlerCallback | undefined;
+    let next: Router<CTX> | RouteHandlerCallback<R> | undefined;
 
     let i = startFromIndex;
     for (; i < this.handlersQueue.length; i++) {
@@ -104,7 +107,7 @@ export default abstract class Router {
         req.relativePath = forwardPath;
         next.goNext(req, res, 0, n);
       } else {
-        next(req, res, n);
+        next(req as R, res, n);
       }
     } else if (goNext) {
       Object.keys(params).forEach((key) => {

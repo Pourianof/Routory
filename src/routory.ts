@@ -9,13 +9,16 @@ import RouterMessage from './routerMessage';
 /**
  * Represent a relative route handler
  */
-export default class Routory extends Router {
+export default class Routory<
+  CTX extends {} = {},
+  R extends RouterRequest<CTX> = RouterRequest<CTX>,
+> extends Router<CTX> {
   private _delegatingPathParsing(
     p: any,
     t: any,
     method: RequestMethods | 'use'
   ) {
-    const controller = (x: any, targetRouter: Router) => {
+    const controller = (x: any, targetRouter: Router<CTX>) => {
       if (typeof x === 'function') {
         targetRouter._use([{ cb: x, method } as RouteHandler]);
         return true;
@@ -41,7 +44,7 @@ export default class Routory extends Router {
       p = Router.pathSeperator;
     }
 
-    let parent: Router = this;
+    let parent: Router<CTX> = this;
 
     if (t instanceof Routory) {
       t.path = p;
@@ -62,44 +65,59 @@ export default class Routory extends Router {
     return newRouter;
   }
 
-  use(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
-  use(path: string, RouteHandlerCallback: Routory): Routory;
-  use(...routerHandler: RouteHandlerCallback[]): Routory;
-  use(router: Routory, path?: undefined): Routory;
+  use(
+    path: string,
+    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+  ): Routory<CTX>;
+  use(path: string, RouteHandlerCallback: Routory): Routory<CTX>;
+  use(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
+  use(router: Routory, path?: undefined): Routory<CTX>;
   use(p: any, r: any) {
     return this._delegatingPathParsing(p, r, 'use');
   }
 
-  post(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
-  post(...routerHandler: RouteHandlerCallback[]): Routory;
-  post(path: string, RouteHandlerCallback: Routory): Routory;
-  post(p: any, r: any): Routory {
+  post(
+    path: string,
+    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+  ): Routory<CTX>;
+  post(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
+  post(path: string, RouteHandlerCallback: Routory): Routory<CTX>;
+  post(p: any, r: any): Routory<CTX> {
     return this._delegatingPathParsing(p, r, RequestMethods.POST);
   }
 
-  get(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
-  get(...routerHandler: RouteHandlerCallback[]): Routory;
+  get(
+    path: string,
+    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+  ): Routory<CTX>;
+  get(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
   get(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.GET);
   }
 
-  put(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
-  put(...routerHandler: RouteHandlerCallback[]): Routory;
+  put(
+    path: string,
+    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+  ): Routory<CTX>;
+  put(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
   put(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.POST);
   }
 
-  push(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
-  push(path: string, RouteHandlerCallback: Routory): Routory;
+  push(
+    path: string,
+    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+  ): Routory<CTX>;
+  push(path: string, RouteHandlerCallback: Routory): Routory<CTX>;
   push(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.PUSH);
   }
 
   delete(
     path: string,
-    ...RouteHandlerCallback: RouteHandlerCallback[]
-  ): Routory;
-  delete(...routerHandler: RouteHandlerCallback[]): Routory;
+    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+  ): Routory<CTX>;
+  delete(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
   delete(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.DELETE);
   }
