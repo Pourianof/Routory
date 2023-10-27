@@ -1,0 +1,8 @@
+{
+  "name": "routory",
+  "main": "routory.js",
+  "version": "0.1",
+  "description": "A mini routing app",
+  "author": "Pouriya",
+  "license": "ISC"
+}

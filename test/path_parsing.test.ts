@@ -1,4 +1,4 @@
-import AppRouter from '../src/appRouter';
+import AppRouter from '../src/routory';
 
 const router = new AppRouter();
 

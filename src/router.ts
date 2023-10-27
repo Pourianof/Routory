@@ -1,4 +1,3 @@
-import AppRouter from './appRouter';
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 
@@ -134,7 +133,10 @@ export default abstract class Router {
  * Represent an absolute path Handler with one method
  */
 export class MethodRouteManager extends Router {
-  constructor(path: string, private method: RequestMethods | 'use') {
+  constructor(
+    path: string,
+    private method: RequestMethods | 'use'
+  ) {
     super();
     this.path = path;
   }

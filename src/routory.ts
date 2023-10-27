@@ -9,7 +9,7 @@ import RouterMessage from './routerMessage';
 /**
  * Represent a relative route handler
  */
-export default class AppRouter extends Router {
+export default class Routory extends Router {
   private _delegatingPathParsing(
     p: any,
     t: any,
@@ -26,7 +26,7 @@ export default class AppRouter extends Router {
         );
         return true;
       }
-      if (x instanceof AppRouter) {
+      if (x instanceof Routory) {
         targetRouter._use(x);
         return true;
       }
@@ -43,7 +43,7 @@ export default class AppRouter extends Router {
 
     let parent: Router = this;
 
-    if (t instanceof AppRouter) {
+    if (t instanceof Routory) {
       t.path = p;
     } else if (p && p !== Router.pathSeperator) {
       parent = new MethodRouteManager(p, method);
@@ -57,46 +57,40 @@ export default class AppRouter extends Router {
   }
 
   route(path: string) {
-    const newRouter = new AppRouter();
+    const newRouter = new Routory();
     this.use(path, newRouter);
     return newRouter;
   }
 
-  use(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): AppRouter;
-  use(path: string, RouteHandlerCallback: AppRouter): AppRouter;
-  use(...routerHandler: RouteHandlerCallback[]): AppRouter;
-  use(router: AppRouter, path?: undefined): AppRouter;
+  use(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
+  use(path: string, RouteHandlerCallback: Routory): Routory;
+  use(...routerHandler: RouteHandlerCallback[]): Routory;
+  use(router: Routory, path?: undefined): Routory;
   use(p: any, r: any) {
     return this._delegatingPathParsing(p, r, 'use');
   }
 
-  post(
-    path: string,
-    ...RouteHandlerCallback: RouteHandlerCallback[]
-  ): AppRouter;
-  post(...routerHandler: RouteHandlerCallback[]): AppRouter;
-  post(path: string, RouteHandlerCallback: AppRouter): AppRouter;
-  post(p: any, r: any): AppRouter {
+  post(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
+  post(...routerHandler: RouteHandlerCallback[]): Routory;
+  post(path: string, RouteHandlerCallback: Routory): Routory;
+  post(p: any, r: any): Routory {
     return this._delegatingPathParsing(p, r, RequestMethods.POST);
   }
 
-  get(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): AppRouter;
-  get(...routerHandler: RouteHandlerCallback[]): AppRouter;
+  get(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
+  get(...routerHandler: RouteHandlerCallback[]): Routory;
   get(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.GET);
   }
 
-  put(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): AppRouter;
-  put(...routerHandler: RouteHandlerCallback[]): AppRouter;
+  put(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
+  put(...routerHandler: RouteHandlerCallback[]): Routory;
   put(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.POST);
   }
 
-  push(
-    path: string,
-    ...RouteHandlerCallback: RouteHandlerCallback[]
-  ): AppRouter;
-  push(path: string, RouteHandlerCallback: AppRouter): AppRouter;
+  push(path: string, ...RouteHandlerCallback: RouteHandlerCallback[]): Routory;
+  push(path: string, RouteHandlerCallback: Routory): Routory;
   push(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.PUSH);
   }
@@ -104,8 +98,8 @@ export default class AppRouter extends Router {
   delete(
     path: string,
     ...RouteHandlerCallback: RouteHandlerCallback[]
-  ): AppRouter;
-  delete(...routerHandler: RouteHandlerCallback[]): AppRouter;
+  ): Routory;
+  delete(...routerHandler: RouteHandlerCallback[]): Routory;
   delete(p: any, r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.DELETE);
   }

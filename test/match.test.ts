@@ -1,10 +1,10 @@
-import AppRouter from '../src/appRouter';
+import Routory from '../src/routory';
 import { RequestMethods } from '../src/routerRequest';
 
-const router = new AppRouter();
+const router = new Routory();
 
-router.route('/a').get((req, res, next) => {
-  console.log('/a : Routing...');
+router.route('/a').get('/c', (req, res, next) => {
+  console.log('$-> GET : /a/c');
   next();
 });
 
@@ -15,7 +15,7 @@ router.use((req, res, n) => {
 
 // ===============================
 
-const subRouter = new AppRouter();
+const subRouter = new Routory();
 
 router.use('/b', subRouter); // METHOD /b
 
@@ -37,7 +37,7 @@ router.use((req, res, next) => {
 (async function () {
   router.onMessage(
     {
-      url: '/b/a',
+      url: '/a/c',
       method: RequestMethods.GET,
     },
     {}
