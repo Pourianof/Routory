@@ -15,47 +15,43 @@ export default class Routory<
 > extends Router<CTX> {
   private _delegatingPathParsing(
     p: any,
-    t: any,
+    t: (Router | RouteHandlerCallback<R>)[],
     method: RequestMethods | 'use'
   ) {
-    const controller = (x: any, targetRouter: Router<CTX>) => {
-      if (typeof x === 'function') {
-        targetRouter._use([{ cb: x, method } as RouteHandler]);
-        return true;
-      }
-      if (x instanceof Array) {
-        targetRouter._use(
-          x.map((cb: RouteHandlerCallback) => ({ cb, method }))
-        );
-        return true;
-      }
-      if (x instanceof Routory) {
-        targetRouter._use(x);
-        return true;
-      }
-      return false;
+    const controller = (
+      x: (Router | RouteHandlerCallback<R>)[],
+      targetRouter: Router<CTX>
+    ) => {
+      const val: (Router | RouteHandler)[] = x.map(
+        (cb: RouteHandlerCallback<R> | Router) =>
+          cb instanceof Routory
+            ? ((cb.path = p), cb)
+            : cb instanceof Router
+            ? cb
+            : ({ cb, method } as RouteHandler)
+      );
+      targetRouter._use(val);
     };
     const isPathSpecified = typeof p === 'string';
 
+    let parent: Router<CTX> = this;
+
     if (isPathSpecified) {
       p = p.trim();
+      if (
+        p &&
+        p !== Router.pathSeperator &&
+        !(t[0] instanceof Routory && t.length === 1)
+      ) {
+        parent = new MethodRouteManager(p, method);
+        this.handlersQueue.push(parent);
+      }
     } else {
-      t = p;
+      t.unshift(p);
       p = Router.pathSeperator;
     }
 
-    let parent: Router<CTX> = this;
-
-    if (t instanceof Routory) {
-      t.path = p;
-    } else if (p && p !== Router.pathSeperator) {
-      parent = new MethodRouteManager(p, method);
-      this.handlersQueue.push(parent);
-    }
-
-    if (!controller(t, parent)) {
-      throw new Error(`Wrong paramaters for method |${method}|`);
-    }
+    controller(t, parent);
     return this;
   }
 
@@ -67,12 +63,12 @@ export default class Routory<
 
   use(
     path: string,
-    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+    ...RouteHandlerCallback: (Router | RouteHandlerCallback<R>)[]
   ): Routory<CTX>;
   use(path: string, RouteHandlerCallback: Routory<CTX>): Routory<CTX>;
-  use(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
+  use(...routerHandler: (Router | RouteHandlerCallback<R>)[]): Routory<CTX>;
   use(router: Routory, path?: undefined): Routory<CTX>;
-  use(p: any, r: any) {
+  use(p: any, ...r: any) {
     return this._delegatingPathParsing(p, r, 'use');
   }
 
@@ -82,7 +78,7 @@ export default class Routory<
   ): Routory<CTX>;
   post(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
   post(path: string, RouteHandlerCallback: Routory): Routory<CTX>;
-  post(p: any, r: any): Routory<CTX> {
+  post(p: any, ...r: any): Routory<CTX> {
     return this._delegatingPathParsing(p, r, RequestMethods.POST);
   }
 
@@ -91,7 +87,7 @@ export default class Routory<
     ...RouteHandlerCallback: RouteHandlerCallback<R>[]
   ): Routory<CTX>;
   get(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
-  get(p: any, r: any) {
+  get(p: any, ...r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.GET);
   }
 
@@ -100,7 +96,7 @@ export default class Routory<
     ...RouteHandlerCallback: RouteHandlerCallback<R>[]
   ): Routory<CTX>;
   put(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
-  put(p: any, r: any) {
+  put(p: any, ...r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.POST);
   }
 
@@ -109,7 +105,7 @@ export default class Routory<
     ...RouteHandlerCallback: RouteHandlerCallback<R>[]
   ): Routory<CTX>;
   push(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
-  push(p: any, r: any) {
+  push(p: any, ...r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.PUSH);
   }
 
@@ -118,7 +114,7 @@ export default class Routory<
     ...RouteHandlerCallback: RouteHandlerCallback<R>[]
   ): Routory<CTX>;
   delete(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
-  delete(p: any, r: any) {
+  delete(p: any, ...r: any) {
     return this._delegatingPathParsing(p, r, RequestMethods.DELETE);
   }
 

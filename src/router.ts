@@ -47,9 +47,9 @@ export default abstract class Router<
     let match: boolean = true;
     for (let i = 0; i < pathPatternParts.length; i++) {
       const _p = pathPatternParts[i];
-      const _t = pathParts[i];
+      const _t = pathParts[i].trim();
 
-      if (_p.startsWith(':') || _t === _p) {
+      if ((_p.startsWith(':') && _t) || _t === _p) {
         continue;
       } else {
         match = false;
@@ -116,7 +116,7 @@ export default abstract class Router<
       goNext();
     }
   }
-  _use(handlers: RouteHandler[] | Router) {
+  _use(handlers: (RouteHandler<R> | Router)[]) {
     if (handlers instanceof Array) {
       this.handlersQueue.push(...handlers);
       return;
@@ -145,7 +145,7 @@ export class MethodRouteManager extends Router {
   }
 
   protected isMatch(p: string, m: RequestMethods): boolean {
-    return super.isMatch(p, m) && this.method === m;
+    return super.isMatch(p, m) && (this.method === m || this.method === 'use');
   }
   toString(): string {
     return `
