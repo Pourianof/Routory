@@ -71,7 +71,7 @@ export default class Routory<
     ...RouteHandlerCallback: (Router | RouteHandlerCallback<R>)[]
   ): Routory<CTX>;
   use(...routerHandler: (Router | RouteHandlerCallback<R>)[]): Routory<CTX>;
-  use(errHandlerCallback: ErrorHandlerCallback): Routory<CTX>;
+  use(errHandlerCallback: ErrorHandlerCallback<R>): Routory<CTX>;
   use(path: string, RouteHandlerCallback: Routory<CTX>): Routory<CTX>;
   use(router: Routory, path?: undefined): Routory<CTX>;
   use(p: any, ...r: any) {

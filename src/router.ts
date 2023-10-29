@@ -12,9 +12,9 @@ export interface RouteHandler<R extends RouterRequest = RouterRequest> {
   method: RequestMethods | 'use';
 }
 
-export type ErrorHandlerCallback = (
+export type ErrorHandlerCallback<R extends RouterRequest = RouterRequest> = (
   err: any,
-  req: RouterRequest,
+  req: R,
   res: RouterRespond,
   next: () => any
 ) => any;
