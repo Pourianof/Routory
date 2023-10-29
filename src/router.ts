@@ -4,19 +4,48 @@ import RouterRespond from './routerRespond';
 export type RouteHandlerCallback<R extends RouterRequest = RouterRequest> = (
   req: R,
   res: RouterRespond,
-  next: () => void
-) => void;
+  next: (err?: any) => void
+) => any;
 
 export interface RouteHandler<R extends RouterRequest = RouterRequest> {
   cb: RouteHandlerCallback<R>;
   method: RequestMethods | 'use';
 }
 
+export type ErrorHandlerCallback = (
+  err: any,
+  req: RouterRequest,
+  res: RouterRespond,
+  next: () => any
+) => any;
+
 export default abstract class Router<
   CTX extends {} = {},
   R extends RouterRequest<CTX> = RouterRequest<CTX>,
 > {
   static pathSeperator = '/';
+
+  protected static errHandlerCallback: ErrorHandlerCallback[] = [];
+  private static triggerErrorHandling<R extends RouterRequest = RouterRequest>(
+    err: any,
+    req: R,
+    res: RouterRespond,
+    index: number = 0
+  ) {
+    if (Router.errHandlerCallback.length && Router.errHandlerCallback[index]) {
+      Router.errHandlerCallback[index](err, req, res, () => {
+        this.triggerErrorHandling(err, req, res, index + 1);
+      });
+    }
+  }
+
+  protected onErrorHandling(
+    err: any,
+    req: RouterRequest,
+    res: RouterRespond
+  ): any {
+    Router.triggerErrorHandling(err, req, res);
+  }
   protected static pathNormalizing(path: string) {
     path = path.trim();
     if (path.startsWith(Router.pathSeperator)) {
@@ -59,12 +88,12 @@ export default abstract class Router<
 
     return match;
   }
-  goNext(
+  protected async goNext(
     req: RouterRequest,
     res: RouterRespond,
     startFromIndex: number = 0,
     goNext?: () => any
-  ): void {
+  ): Promise<void> {
     const rp = Router.pathNormalizing(req.relativePath);
     const forwardPath = Router.pathNormalizing(rp.substring(this.path.length));
     let params: { [key: string]: any } = {};
@@ -99,7 +128,11 @@ export default abstract class Router<
     }
     if (next) {
       req.params = { ...req.params, ...params };
-      const n = () => {
+      const n = (err?: any) => {
+        if (err) {
+          this.onErrorHandling(err, req, res);
+          return;
+        }
         req.relativePath = rp;
         this.goNext(req, res, i + 1, goNext);
       };
@@ -107,7 +140,12 @@ export default abstract class Router<
         req.relativePath = forwardPath;
         next.goNext(req, res, 0, n);
       } else {
-        next(req as R, res, n);
+        const waiter = next(req as R, res, n);
+        if (waiter instanceof Promise) {
+          waiter.catch((err) => {
+            n(err);
+          });
+        }
       }
     } else if (goNext) {
       Object.keys(params).forEach((key) => {

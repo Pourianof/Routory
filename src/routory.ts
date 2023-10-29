@@ -1,4 +1,5 @@
 import Router, {
+  ErrorHandlerCallback,
   MethodRouteManager,
   RouteHandler,
   RouteHandlerCallback,
@@ -47,6 +48,10 @@ export default class Routory<
         this.handlersQueue.push(parent);
       }
     } else {
+      if ((p as Function).length === 4) {
+        Router.errHandlerCallback.push(p);
+        return this;
+      }
       t.unshift(p);
       p = Router.pathSeperator;
     }
@@ -65,8 +70,9 @@ export default class Routory<
     path: string,
     ...RouteHandlerCallback: (Router | RouteHandlerCallback<R>)[]
   ): Routory<CTX>;
-  use(path: string, RouteHandlerCallback: Routory<CTX>): Routory<CTX>;
   use(...routerHandler: (Router | RouteHandlerCallback<R>)[]): Routory<CTX>;
+  use(errHandlerCallback: ErrorHandlerCallback): Routory<CTX>;
+  use(path: string, RouteHandlerCallback: Routory<CTX>): Routory<CTX>;
   use(router: Routory, path?: undefined): Routory<CTX>;
   use(p: any, ...r: any) {
     return this._delegatingPathParsing(p, r, 'use');
