@@ -1,8 +1,8 @@
-import AppRouter from '../src/appRouter';
 import RouterRespond from '../src/routerRespond';
 import { RequestMethods } from '../src/routerRequest';
+import Routory from '../src/routory';
 
-const router = new AppRouter();
+const router = new Routory();
 
 router.use((req, res, next) => {
   console.log('===== >> USE HANDLER :\n');
@@ -10,7 +10,7 @@ router.use((req, res, next) => {
   next();
 });
 
-const scheduleRouter = new AppRouter();
+const scheduleRouter = new Routory();
 scheduleRouter
   .route('/:id')
   .get((req, res: RouterRespond) => {
@@ -42,13 +42,16 @@ globalThis.setTimeout(async () => {
   console.log('Respond is : ', result);
 }, Math.random() * 3000);
 
-globalThis.setTimeout(async () => {
-  const result = await router.onMessage(
-    {
-      url: '/schedules/1',
-      method: RequestMethods.POST,
-    },
-    {}
-  );
-  console.log('Respond is : ', result);
-}, Math.random() * 3000 + 5000);
+globalThis.setTimeout(
+  async () => {
+    const result = await router.onMessage(
+      {
+        url: '/schedules/1',
+        method: RequestMethods.POST,
+      },
+      {}
+    );
+    console.log('Respond is : ', result);
+  },
+  Math.random() * 3000 + 5000
+);
