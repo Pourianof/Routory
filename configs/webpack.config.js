@@ -1,28 +1,31 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 const path = require('path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-var DeclarationBundlerPlugin = require('types-webpack-bundler');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV == 'production';
 const config = {
-  entry: { routory: path.join(__dirname, '..', 'src', 'routory.ts') },
+  entry: {
+    routory: path.join(__dirname, '..', 'src', 'routory.ts'),
+  },
   output: {
-    library: 'routory',
-    chunkFilename: '[name].js',
+    library: {
+      type: 'commonjs-module',
+    },
     filename: '[name].js',
-    path: path.join(__dirname, '..', 'dist'),
+    path: path.join(__dirname, '..', 'dist', 'build'),
   },
   plugins: [
     new CleanWebpackPlugin(),
     new CopyWebpackPlugin({
-      patterns: [{ from: '../src/package.json', to: './package.json' }],
-    }),
-    new DeclarationBundlerPlugin({
-      moduleName: 'routory',
-      out: './@types/index.d.ts',
+      patterns: [{ from: './src/package.json', to: '../package.json' }],
     }),
   ],
+  optimization: {
+    minimize: true,
+    minimizer: [new TerserPlugin()],
+  },
   module: {
     rules: [
       {
@@ -34,7 +37,6 @@ const config = {
         test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
         type: 'asset',
       },
-
       // Add your rules for custom modules here
       // Learn more about loaders from https://webpack.js.org/loaders/
     ],

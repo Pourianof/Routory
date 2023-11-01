@@ -1,12 +1,12 @@
 import Router, {
   ErrorHandlerCallback,
-  MethodRouteManager,
   RouteHandler,
   RouteHandlerCallback,
 } from './router';
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 import RouterMessage from './routerMessage';
+import MethodRouteManager from './methodRouteManager';
 /**
  * Represent a relative route handler
  */
@@ -139,3 +139,5 @@ export default class Routory<
     return res;
   }
 }
+
+export { RouterRespond, RouterRequest, Router, RouterMessage, RequestMethods };
