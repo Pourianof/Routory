@@ -1,3 +1,5 @@
+import RouterRespondMessage from './routerRespondMessage';
+
 type Resolver = (val: any) => any;
 
 enum RespondState {
@@ -51,7 +53,7 @@ export default class RouterRespond {
     return this.isDataSended;
   }
 
-  private provideFormattedResponseForSending() {
+  private provideFormattedResponseForSending(): RouterRespondMessage | string {
     const response = {
       data: this.respondValue,
       status: { code: this.statusCode, message: this.statusMessage },

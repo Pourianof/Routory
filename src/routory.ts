@@ -7,6 +7,7 @@ import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 import RouterMessage from './routerMessage';
 import MethodRouteManager from './methodRouteManager';
+import RouterRespondMessage from './routerRespondMessage';
 /**
  * Represent a relative route handler
  */
@@ -103,16 +104,16 @@ export default class Routory<
   ): Routory<CTX>;
   put(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
   put(p: any, ...r: any) {
-    return this._delegatingPathParsing(p, r, RequestMethods.POST);
+    return this._delegatingPathParsing(p, r, RequestMethods.PUT);
   }
 
-  push(
+  patch(
     path: string,
     ...RouteHandlerCallback: RouteHandlerCallback<R>[]
   ): Routory<CTX>;
-  push(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
-  push(p: any, ...r: any) {
-    return this._delegatingPathParsing(p, r, RequestMethods.PUSH);
+  patch(...routerHandler: RouteHandlerCallback<R>[]): Routory<CTX>;
+  patch(p: any, ...r: any) {
+    return this._delegatingPathParsing(p, r, RequestMethods.PATCH);
   }
 
   delete(
@@ -140,4 +141,11 @@ export default class Routory<
   }
 }
 
-export { RouterRespond, RouterRequest, Router, RouterMessage, RequestMethods };
+export {
+  RouterRespond,
+  RouterRespondMessage,
+  RouterRequest,
+  Router,
+  RouterMessage,
+  RequestMethods,
+};
