@@ -1,3 +1,4 @@
+import Notifier from './notifier';
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 
@@ -22,7 +23,7 @@ export type ErrorHandlerCallback<R extends RouterRequest = RouterRequest> = (
 export default abstract class Router<
   CTX extends {} = {},
   R extends RouterRequest<CTX> = RouterRequest<CTX>,
-> {
+> extends Notifier {
   static pathSeperator = '/';
 
   protected static errHandlerCallback: ErrorHandlerCallback[] = [];
@@ -88,6 +89,9 @@ export default abstract class Router<
 
     return match;
   }
+
+  private finishedSym = Symbol('finished');
+
   protected async goNext(
     req: RouterRequest,
     res: RouterRespond,
@@ -97,6 +101,17 @@ export default abstract class Router<
     const rp = Router.pathNormalizing(req.relativePath);
     const forwardPath = Router.pathNormalizing(rp.substring(this.path.length));
     let params: { [key: string]: any } = {};
+
+    const finished = () => {
+      const finished = req.context?.finished;
+      if (!(finished && finished[this.finishedSym])) {
+        req.context.finished = {
+          ...req.context.finished,
+          [this.finishedSym]: true,
+        };
+        this.trigger('endofmwexecution');
+      }
+    };
 
     if (this.hasParam) {
       const pathParts = rp.split(Router.pathSeperator);
@@ -139,19 +154,29 @@ export default abstract class Router<
       if (next instanceof Router) {
         req.relativePath = forwardPath;
         next.goNext(req, res, 0, n);
+        finished();
       } else {
         const waiter = next(req as R, res, n);
         if (waiter instanceof Promise) {
-          waiter.catch((err) => {
-            n(err);
-          });
+          waiter
+            .catch((err) => {
+              n(err);
+            })
+            .then((v) => {
+              finished();
+            });
+        } else {
+          finished();
         }
       }
     } else if (goNext) {
       Object.keys(params).forEach((key) => {
         delete req.params[key];
       });
+      finished();
       goNext();
+    } else {
+      finished();
     }
   }
   _use(handlers: (RouteHandler<R> | Router)[]) {
