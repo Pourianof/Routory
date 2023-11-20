@@ -99,7 +99,20 @@ export default abstract class Router<
     goNext?: () => any
   ): Promise<void> {
     const rp = Router.pathNormalizing(req.relativePath);
-    const forwardPath = Router.pathNormalizing(rp.substring(this.path.length));
+    let forwardPath: string;
+
+    if (this.hasParam) {
+      const i = rp.indexOf(Router.pathSeperator);
+      if (i < 0) {
+        forwardPath = '';
+      } else {
+        forwardPath = rp.substring(rp.indexOf(Router.pathSeperator));
+      }
+    } else {
+      forwardPath = rp.substring(this.path.length);
+    }
+
+    forwardPath = Router.pathNormalizing(forwardPath);
     let params: { [key: string]: any } = {};
 
     const finished = () => {
