@@ -23,7 +23,7 @@ export type ErrorHandlerCallback<R extends RouterRequest = RouterRequest> = (
 export default abstract class Router<
   CTX extends {} = {},
   R extends RouterRequest<CTX> = RouterRequest<CTX>,
-> extends Notifier {
+> {
   static pathSeperator = '/';
 
   protected static errHandlerCallback: ErrorHandlerCallback[] = [];
@@ -115,17 +115,6 @@ export default abstract class Router<
     forwardPath = Router.pathNormalizing(forwardPath);
     let params: { [key: string]: any } = {};
 
-    const finished = () => {
-      const finished = req.context?.finished;
-      if (!(finished && finished[this.finishedSym])) {
-        req.context.finished = {
-          ...req.context.finished,
-          [this.finishedSym]: true,
-        };
-        this.trigger('endofmwexecution');
-      }
-    };
-
     if (this.hasParam) {
       const pathParts = rp.split(Router.pathSeperator);
       this.path.split(Router.pathSeperator).forEach((name, index) => {
@@ -167,29 +156,19 @@ export default abstract class Router<
       if (next instanceof Router) {
         req.relativePath = forwardPath;
         next.goNext(req, res, 0, n);
-        finished();
       } else {
         const waiter = next(req as R, res, n);
         if (waiter instanceof Promise) {
-          waiter
-            .catch((err) => {
-              n(err);
-            })
-            .then((v) => {
-              finished();
-            });
-        } else {
-          finished();
+          waiter.catch((err) => {
+            n(err);
+          });
         }
       }
     } else if (goNext) {
       Object.keys(params).forEach((key) => {
         delete req.params[key];
       });
-      finished();
       goNext();
-    } else {
-      finished();
     }
   }
   _use(handlers: (RouteHandler<R> | Router)[]) {
