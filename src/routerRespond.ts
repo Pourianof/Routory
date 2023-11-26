@@ -1,3 +1,4 @@
+import Notifier from './notifier';
 import RouterRespondMessage from './routerRespondMessage';
 
 type Resolver = (val: any) => any;
@@ -13,8 +14,10 @@ enum RespondState {
   We can act this class as a promise in the way using await for waiting for respond (by calling send method).
 */
 
-export default class RouterRespond {
-  constructor() {}
+export default class RouterRespond extends Notifier<'onrespond'> {
+  constructor() {
+    super();
+  }
 
   private isDataSended = false;
   private state = RespondState.NOT_RECIEVED;
@@ -72,17 +75,12 @@ export default class RouterRespond {
   }
 
   private invokeListeners() {
-    Array.from(this.respondListeners.values()).forEach((l) => {
-      l(this.respondValue);
-    });
-    this.respondListeners.clear();
+    this.trigger('onrespond', this.provideFormattedResponseForSending());
+    this.clearify('onrespond');
   }
 
-  private respondListeners: Map<number, (r: any) => any> = new Map();
   // Allow other part of programs to listen when a respond sent
   onRespond(listener: (r: any) => any) {
-    const id = this.respondListeners.size;
-    this.respondListeners.set(id, listener);
-    return id;
+    return this.addListener('onrespond', listener);
   }
 }
