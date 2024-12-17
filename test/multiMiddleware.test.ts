@@ -18,7 +18,7 @@ router
     (_, __, next) => {
       console.log('third mw3');
       next();
-    }
+    },
   )
   .use('/:id', (req, res, next) => {
     console.log('*** ID is : ' + req.params.id);
@@ -42,6 +42,6 @@ router.use((req, res, n) => {
       url: '/f',
       method: RequestMethods.GET,
     },
-    {}
+    {},
   );
 })();

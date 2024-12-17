@@ -37,7 +37,7 @@ globalThis.setTimeout(async () => {
       url: '/schedules/1',
       method: RequestMethods.GET,
     },
-    {}
+    {},
   );
   console.log('Respond is : ', result);
 }, Math.random() * 3000);
@@ -49,9 +49,9 @@ globalThis.setTimeout(
         url: '/schedules/1',
         method: RequestMethods.POST,
       },
-      {}
+      {},
     );
     console.log('Respond is : ', result);
   },
-  Math.random() * 3000 + 5000
+  Math.random() * 3000 + 5000,
 );

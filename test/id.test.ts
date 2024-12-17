@@ -26,6 +26,6 @@ subRouter
       url: '/b/15546',
       method: RequestMethods.DELETE,
     },
-    {}
+    {},
   );
 })();

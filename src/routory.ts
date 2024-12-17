@@ -18,11 +18,11 @@ export default class Routory<
   private _delegatingPathParsing(
     p: any,
     t: (Router | RouteHandlerCallback<R>)[],
-    method: RequestMethods | 'use'
+    method: RequestMethods | 'use',
   ) {
     const controller = (
       x: (Router | RouteHandlerCallback<R>)[],
-      targetRouter: Router<CTX>
+      targetRouter: Router<CTX>,
     ) => {
       const val: (Router | RouteHandler)[] = x.map(
         (cb: RouteHandlerCallback<R> | Router) =>
@@ -30,7 +30,7 @@ export default class Routory<
             ? ((cb.path = p), cb)
             : cb instanceof Router
             ? cb
-            : ({ cb, method } as RouteHandler)
+            : ({ cb, method } as RouteHandler),
       );
       targetRouter._use(val);
     };
@@ -125,7 +125,7 @@ export default class Routory<
     return this._delegatingPathParsing(p, r, RequestMethods.DELETE);
   }
 
-  onMessage(message: RouterMessage, db: any) {
+  onMessage(message: RouterMessage, context: CTX) {
     const url = message.url.trim();
     const res = new RouterRespond();
     const req: RouterRequest = new RouterRequest(
@@ -134,7 +134,7 @@ export default class Routory<
       url,
       url,
       message.data,
-      { db: db }
+      context,
     );
     this.goNext(req, res);
     return res;

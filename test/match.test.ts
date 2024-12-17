@@ -40,6 +40,6 @@ router.use((req, res, next) => {
       url: '/a/c',
       method: RequestMethods.GET,
     },
-    {}
+    {},
   );
 })();

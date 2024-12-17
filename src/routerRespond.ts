@@ -1,4 +1,4 @@
-import Notifier from './notifier';
+import Notifier from '@pourianof/notifier';
 import RouterRespondMessage from './routerRespondMessage';
 
 type Resolver = (val: any) => any;

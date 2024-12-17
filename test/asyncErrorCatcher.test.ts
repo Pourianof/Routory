@@ -8,12 +8,12 @@ router.use(
   (err: any, req: RouterRequest, res: RouterRespond, next: () => any) => {
     console.log(err);
     next();
-  }
+  },
 );
 router.use(
   (err: any, req: RouterRequest, res: RouterRespond, next: () => any) => {
     console.log('2. Second Error handling.');
-  }
+  },
 );
 router.get('/a/b', (req, res, next) => {
   console.log('path : /a/b');

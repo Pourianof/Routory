@@ -1,11 +1,11 @@
-import Notifier from './notifier';
+import Notifier from '@pourianof/notifier';
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 
 export type RouteHandlerCallback<R extends RouterRequest = RouterRequest> = (
   req: R,
   res: RouterRespond,
-  next: (err?: any) => void
+  next: (err?: any) => void,
 ) => any;
 
 export interface RouteHandler<R extends RouterRequest = RouterRequest> {
@@ -17,7 +17,7 @@ export type ErrorHandlerCallback<R extends RouterRequest = RouterRequest> = (
   err: any,
   req: R,
   res: RouterRespond,
-  next: () => any
+  next: () => any,
 ) => any;
 
 export default abstract class Router<
@@ -31,7 +31,7 @@ export default abstract class Router<
     err: any,
     req: R,
     res: RouterRespond,
-    index: number = 0
+    index: number = 0,
   ) {
     if (Router.errHandlerCallback.length && Router.errHandlerCallback[index]) {
       Router.errHandlerCallback[index](err, req, res, () => {
@@ -43,7 +43,7 @@ export default abstract class Router<
   protected onErrorHandling(
     err: any,
     req: RouterRequest,
-    res: RouterRespond
+    res: RouterRespond,
   ): any {
     Router.triggerErrorHandling(err, req, res);
   }
@@ -96,7 +96,7 @@ export default abstract class Router<
     req: RouterRequest,
     res: RouterRespond,
     startFromIndex: number = 0,
-    goNext?: () => any
+    goNext?: () => any,
   ): Promise<void> {
     const rp = Router.pathNormalizing(req.relativePath);
     let forwardPath: string;
