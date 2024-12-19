@@ -1,4 +1,3 @@
-import Notifier from '@pourianof/notifier';
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 
