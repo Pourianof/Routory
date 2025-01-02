@@ -30,7 +30,9 @@ export default class GlobalErrorHandler {
     this.triggerErrorHandling(err, req, res);
   }
 
-  registerErrorHandlerCallback(callback: ErrorHandlerCallback) {}
+  registerErrorHandlerCallback(callback: ErrorHandlerCallback) {
+    this.globalErrHandlerCallbacks.push(callback);
+  }
 
   static _instance?: GlobalErrorHandler;
   private constructor() {}
