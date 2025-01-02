@@ -1,13 +1,11 @@
-import Router, {
-  ErrorHandlerCallback,
-  RouteHandler,
-  RouteHandlerCallback,
-} from './router';
+import Router, { RouteHandler, RouteHandlerCallback } from './router';
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 import RouterMessage from './routerMessage';
 import MethodRouteManager from './methodRouteManager';
 import RouterRespondMessage from './routerRespondMessage';
+import { pathSeperator } from './configs';
+import GlobalErrorHandler, { ErrorHandlerCallback } from './globalErrorHandler';
 /**
  * Represent a relative route handler
  */
@@ -29,8 +27,8 @@ export default class Routory<
           cb instanceof Routory
             ? ((cb.path = p), cb)
             : cb instanceof Router
-            ? cb
-            : ({ cb, method } as RouteHandler),
+              ? cb
+              : ({ cb, method } as RouteHandler),
       );
       targetRouter._use(val);
     };
@@ -42,7 +40,7 @@ export default class Routory<
       p = p.trim();
       if (
         p &&
-        p !== Router.pathSeperator &&
+        p !== pathSeperator &&
         !(t[0] instanceof Routory && t.length === 1)
       ) {
         parent = new MethodRouteManager(p, method);
@@ -50,11 +48,11 @@ export default class Routory<
       }
     } else {
       if ((p as Function).length === 4) {
-        Router.errHandlerCallback.push(p);
+        GlobalErrorHandler.instance.registerErrorHandlerCallback(p);
         return this;
       }
       t.unshift(p);
-      p = Router.pathSeperator;
+      p = pathSeperator;
     }
 
     controller(t, parent);
@@ -136,7 +134,7 @@ export default class Routory<
       message.data,
       context,
     );
-    this.goNext(req, res);
+    this.handleRequest(req, res);
     return res;
   }
 }

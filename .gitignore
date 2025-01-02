@@ -2,3 +2,4 @@
 node_modules/
 dist/
 PROJECT_STORY_BOARD/
+coverage/

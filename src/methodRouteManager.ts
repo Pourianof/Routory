@@ -7,14 +7,16 @@ import { RequestMethods } from './routerRequest';
 export default class MethodRouteManager extends Router {
   constructor(
     path: string,
-    private method: RequestMethods | 'use'
+    private method: RequestMethods | 'use',
   ) {
     super();
     this.path = path;
   }
 
   protected isMatch(p: string, m: RequestMethods): boolean {
-    return super.isMatch(p, m) && (this.method === m || this.method === 'use');
+    return (
+      super.parsePath(p, m) && (this.method === m || this.method === 'use')
+    );
   }
   toString(): string {
     return `

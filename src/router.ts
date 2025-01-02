@@ -1,3 +1,7 @@
+import { pathSeperator } from './configs';
+import { HandleUnMachedRoutePathException } from './exceptions';
+import { pathNormalizing } from './routeParsingUtils';
+import RouterExecutionScope from './routerExecutionScope';
 import { RequestMethods, RouterRequest } from './routerRequest';
 import RouterRespond from './routerRespond';
 
@@ -12,73 +16,61 @@ export interface RouteHandler<R extends RouterRequest = RouterRequest> {
   method: RequestMethods | 'use';
 }
 
-export type ErrorHandlerCallback<R extends RouterRequest = RouterRequest> = (
-  err: any,
-  req: R,
-  res: RouterRespond,
-  next: () => any,
-) => any;
+export interface RequestedPathParseResult {
+  isMatched: boolean;
+  forwardPath?: string;
+  params?: {
+    [key: string]: string;
+  };
+}
 
 export default abstract class Router<
   CTX extends {} = {},
   R extends RouterRequest<CTX> = RouterRequest<CTX>,
 > {
-  static pathSeperator = '/';
-
-  protected static errHandlerCallback: ErrorHandlerCallback[] = [];
-  private static triggerErrorHandling<R extends RouterRequest = RouterRequest>(
-    err: any,
-    req: R,
-    res: RouterRespond,
-    index: number = 0,
-  ) {
-    if (Router.errHandlerCallback.length && Router.errHandlerCallback[index]) {
-      Router.errHandlerCallback[index](err, req, res, () => {
-        this.triggerErrorHandling(err, req, res, index + 1);
-      });
-    }
-  }
-
-  protected onErrorHandling(
-    err: any,
-    req: RouterRequest,
-    res: RouterRespond,
-  ): any {
-    Router.triggerErrorHandling(err, req, res);
-  }
-  protected static pathNormalizing(path: string) {
-    path = path.trim();
-    if (path.startsWith(Router.pathSeperator)) {
-      path = path.substring(1);
-    }
-    if (path.endsWith(Router.pathSeperator)) {
-      path = path.substring(0, path.length - 1);
-    }
-    return path;
-  }
-
   protected handlersQueue: (RouteHandler<R> | Router<CTX>)[] = [];
   protected _path: string = '';
   protected hasParam = false;
   protected set path(p: string) {
     if (p) {
-      this._path = Router.pathNormalizing(p);
+      this._path = pathNormalizing(p);
       this.hasParam = this._path.includes(':');
     }
   }
   protected get path() {
     return this._path;
   }
-  protected isMatch(p: string, method: RequestMethods): boolean {
-    const pathPatternParts = this.path.split(Router.pathSeperator);
-    const pathParts = p.split(Router.pathSeperator);
+
+  private cachedParse?: {
+    requestedPath: string;
+    result: RequestedPathParseResult;
+  };
+
+  protected parsePath(
+    otherPath: string,
+    method: RequestMethods,
+    options?: { populateParams?: boolean },
+  ): RequestedPathParseResult {
+    if (this.cachedParse?.requestedPath == otherPath) {
+      return this.cachedParse.result;
+    }
+
+    const pathPatternParts = this.path.split(pathSeperator);
+    const otherPathParts = otherPath.split(pathSeperator);
 
     let match: boolean = true;
-    for (let i = 0; i < pathPatternParts.length; i++) {
-      const _p = pathPatternParts[i];
-      const _t = pathParts[i].trim();
+    let params: RequestedPathParseResult['params'];
+    let index = 0;
+    for (; index < pathPatternParts.length; index++) {
+      const _p = pathPatternParts[index];
+      const _t = otherPathParts[index].trim();
+      const isParam = _p.startsWith(':') && _t;
 
-      if ((_p.startsWith(':') && _t) || _t === _p) {
+      if (isParam || _t === _p) {
+        if (isParam && options?.populateParams) {
+          params ??= {};
+          params[_p.substring(1)] = _t;
+        }
         continue;
       } else {
         match = false;
@@ -86,90 +78,87 @@ export default abstract class Router<
       }
     }
 
-    return match;
+    const parseResult: RequestedPathParseResult = {
+      isMatched: match,
+      params,
+    };
+
+    if (match) {
+      parseResult.forwardPath = otherPathParts.slice(index).join(pathSeperator);
+      this.cachedParse = { requestedPath: otherPath, result: parseResult };
+    }
+
+    return parseResult;
+  }
+
+  get isMultiPart() {
+    return this.path.includes(pathSeperator);
   }
 
   private finishedSym = Symbol('finished');
 
-  protected async goNext(
-    req: RouterRequest,
-    res: RouterRespond,
+  /**
+   * Forward request to matched sub-router or callback
+   *
+   * Note: this method does not any path matching of requested path and router path(by this.isMatch)
+   * for registered callbacks, because it must done by upper(parent) router.
+   * @param req Input request object
+   * @param res Response object
+   * @param startFromIndex Index where hadnlers should start to get check for next invokation
+   * @param goNext Callback which should execute when all router callbacks has been called
+   */
+
+  handleRequest(req: RouterRequest, res: RouterRespond, afterAll?: () => any) {
+    const rp = pathNormalizing(req.relativePath);
+
+    const analyzeResult = this.parsePath(rp, req.method, {
+      populateParams: true,
+    });
+
+    if (!analyzeResult.isMatched) {
+      throw new HandleUnMachedRoutePathException(rp, this.path);
+    }
+
+    const execScope = new RouterExecutionScope(
+      this,
+      req,
+      res,
+      analyzeResult,
+      afterAll,
+    );
+    execScope.run();
+  }
+
+  getHandlerFor(
+    method: RequestMethods,
+    requestedPath?: string,
     startFromIndex: number = 0,
-    goNext?: () => any,
-  ): Promise<void> {
-    const rp = Router.pathNormalizing(req.relativePath);
-    let forwardPath: string;
-
-    if (this.hasParam) {
-      const i = rp.indexOf(Router.pathSeperator);
-      if (i < 0) {
-        forwardPath = '';
-      } else {
-        forwardPath = rp.substring(rp.indexOf(Router.pathSeperator));
-      }
-    } else {
-      forwardPath = rp.substring(this.path.length);
-    }
-
-    forwardPath = Router.pathNormalizing(forwardPath);
-    let params: { [key: string]: any } = {};
-
-    if (this.hasParam) {
-      const pathParts = rp.split(Router.pathSeperator);
-      this.path.split(Router.pathSeperator).forEach((name, index) => {
-        if (name.startsWith(':')) {
-          name = name.substring(1);
-          params[name] = pathParts[index];
-        }
-      });
-    }
-
+  ) {
     let next: Router<CTX> | RouteHandlerCallback<R> | undefined;
 
-    let i = startFromIndex;
-    for (; i < this.handlersQueue.length; i++) {
+    for (let i = startFromIndex; i < this.handlersQueue.length; i++) {
       const handler = this.handlersQueue[i];
       const isRouter = handler instanceof Router;
-      if (isRouter && handler.isMatch(forwardPath, req.method)) {
+      if (
+        isRouter &&
+        typeof requestedPath == 'string' &&
+        handler.parsePath(requestedPath, method).isMatched
+      ) {
         next = handler;
         break;
       } else if (
         !isRouter &&
-        ((handler.method === req.method && !forwardPath) ||
+        ((handler.method === method && !requestedPath) ||
           handler.method === 'use')
       ) {
         next = (handler as RouteHandler).cb;
         break;
       }
     }
-    if (next) {
-      req.params = { ...req.params, ...params };
-      const n = (err?: any) => {
-        if (err) {
-          this.onErrorHandling(err, req, res);
-          return;
-        }
-        req.relativePath = rp;
-        this.goNext(req, res, i + 1, goNext);
-      };
-      if (next instanceof Router) {
-        req.relativePath = forwardPath;
-        next.goNext(req, res, 0, n);
-      } else {
-        const waiter = next(req as R, res, n);
-        if (waiter instanceof Promise) {
-          waiter.catch((err) => {
-            n(err);
-          });
-        }
-      }
-    } else if (goNext) {
-      Object.keys(params).forEach((key) => {
-        delete req.params[key];
-      });
-      goNext();
-    }
+
+    return next;
   }
+
   _use(handlers: (RouteHandler<R> | Router)[]) {
     if (handlers instanceof Array) {
       this.handlersQueue.push(...handlers);
@@ -179,9 +168,6 @@ export default abstract class Router<
   }
 
   toString() {
-    return `
-      ^^ name : ${this.path}
-      ** handlers.length: ${this.handlersQueue.length}
-    `;
+    return `^^ name : ${this.path}\n** handlers.length: ${this.handlersQueue.length}`;
   }
 }
