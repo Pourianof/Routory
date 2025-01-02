@@ -18,12 +18,10 @@ import {
 
 import RouterExecutionScope from '../../src/routerExecutionScope';
 import { RequestMethods, RouterRequest } from '../../src/routerRequest';
-
-type CallbackHandlerParamListType = [
-  RouterRequest,
+import {
+  CallbackHandlerParamListType,
   RouterRespondMock,
-  VoidFunction,
-];
+} from './testUtils/types';
 
 class RouterMock extends Router {
   //   getHandlerFor(
@@ -38,8 +36,6 @@ class RouterMock extends Router {
 
   handleRequest = jest.fn<void, CallbackHandlerParamListType>();
 }
-
-class RouterRespondMock {}
 
 interface RouterExecMembers {
   rp: string;
