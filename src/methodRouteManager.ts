@@ -19,9 +19,6 @@ export default class MethodRouteManager extends Router {
     );
   }
   toString(): string {
-    return `
-    ${super.toString()}
-    ## method : ${this.method}
-    `;
+    return `${super.toString()}\n## method : ${this.method}`;
   }
 }
