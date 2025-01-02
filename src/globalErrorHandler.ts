@@ -34,7 +34,7 @@ export default class GlobalErrorHandler {
     this.globalErrHandlerCallbacks.push(callback);
   }
 
-  static _instance?: GlobalErrorHandler;
+  private static _instance?: GlobalErrorHandler;
   private constructor() {}
 
   static get instance() {
