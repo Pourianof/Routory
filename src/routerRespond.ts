@@ -29,7 +29,7 @@ export default class RouterRespond extends Notifier<'onrespond'> {
     this.statusCode = statusCode;
     return this;
   }
-  private jsonOutput = true;
+  private jsonOutput = false;
 
   json(data: any) {
     this.jsonOutput = true;
