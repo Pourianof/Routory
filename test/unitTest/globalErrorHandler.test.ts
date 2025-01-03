@@ -1,7 +1,7 @@
 import GlobalErrorHandler from '../../src/globalErrorHandler';
 import { CallbackHandlerParamListType } from './testUtils/types';
 
-describe.only('Handle errors as globally manner, define error handler and forward errors to them', () => {
+describe('Handle errors as globally manner, define error handler and forward errors to them', () => {
   let globalErrHandler: GlobalErrorHandler;
   beforeEach(() => {
     (GlobalErrorHandler as any)._instance = undefined;
