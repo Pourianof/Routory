@@ -1,4 +1,4 @@
-import Router from './router';
+import Router, { RequestedPathParseResult } from './router';
 import { RequestMethods } from './routerRequest';
 
 /**
@@ -13,11 +13,18 @@ export default class MethodRouteManager extends Router {
     this.path = path;
   }
 
-  protected isMatch(p: string, m: RequestMethods): boolean {
-    return (
-      super.parsePath(p, m) && (this.method === m || this.method === 'use')
-    );
+  protected parsePath(
+    otherPath: string,
+    method: RequestMethods,
+    options?: { populateParams?: boolean },
+  ): RequestedPathParseResult {
+    const initialParseResult = super.parsePath(otherPath, method, options);
+    initialParseResult.isMatched &&=
+      this.method === method || this.method === 'use';
+
+    return initialParseResult;
   }
+
   toString(): string {
     return `${super.toString()}\n## method : ${this.method}`;
   }
