@@ -1,5 +1,6 @@
 import Notifier from '@pourianof/notifier';
 import RouterRespondMessage from './routerRespondMessage';
+import { MultipleTimeReponsing } from './exceptions';
 
 type Resolver = (val: any) => any;
 
@@ -19,8 +20,10 @@ export default class RouterRespond extends Notifier<'onrespond'> {
     super();
   }
 
-  private isDataSended = false;
   private state = RespondState.NOT_RECIEVED;
+  get isDataSended() {
+    return this.state == RespondState.RECIEVED;
+  }
 
   statusCode: number = 10;
   statusMessage: string = '';
@@ -38,22 +41,13 @@ export default class RouterRespond extends Notifier<'onrespond'> {
   }
 
   send(data: any) {
+    if (this.state == RespondState.RECIEVED) {
+      throw new MultipleTimeReponsing();
+    }
+
     this.respondValue = data;
-    this.isDataSended = true;
     this.state = RespondState.RECIEVED;
     this.invokeListeners();
-    if (this.resolver) {
-      this._send();
-    }
-  }
-
-  private _send() {
-    this.resolver!(this.provideFormattedResponseForSending());
-    this.state = RespondState.DELIVERED;
-  }
-
-  isResponded() {
-    return this.isDataSended;
   }
 
   private provideFormattedResponseForSending(): RouterRespondMessage | string {
@@ -65,13 +59,9 @@ export default class RouterRespond extends Notifier<'onrespond'> {
   }
 
   private respondValue: any;
-  private resolver?: Resolver;
 
   then(res: Resolver) {
-    this.resolver = res;
-    if (this.isDataSended) {
-      this._send();
-    }
+    this.onRespond(res);
   }
 
   private invokeListeners() {
@@ -80,7 +70,10 @@ export default class RouterRespond extends Notifier<'onrespond'> {
   }
 
   // Allow other part of programs to listen when a respond sent
-  onRespond(listener: (r: any) => any) {
-    return this.addListener('onrespond', listener);
+  onRespond(listener: Resolver) {
+    this.addListener('onrespond', listener);
+    if (this.isDataSended) {
+      this.invokeListeners();
+    }
   }
 }

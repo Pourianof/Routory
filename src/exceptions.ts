@@ -8,3 +8,11 @@ export class HandleUnMachedRoutePathException extends RoutoryException {
     super();
   }
 }
+
+export class MultipleTimeReponsing extends RoutoryException {
+  constructor() {
+    super(
+      'The [send] method is a finalizer method which means it can be called once per response object',
+    );
+  }
+}
