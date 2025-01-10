@@ -44,6 +44,7 @@ export default abstract class Router<
   private cachedParse?: {
     requestedPath: string;
     result: RequestedPathParseResult;
+    withParams: boolean;
   };
 
   protected parsePath(
@@ -51,12 +52,26 @@ export default abstract class Router<
     method: RequestMethods,
     options?: { populateParams?: boolean },
   ): RequestedPathParseResult {
-    if (this.cachedParse?.requestedPath == otherPath) {
+    if (
+      this.cachedParse?.requestedPath == otherPath &&
+      (this.cachedParse.withParams ||
+        !!options?.populateParams == this.cachedParse.withParams)
+    ) {
       return this.cachedParse.result;
     }
 
     const pathPatternParts = this.path.split(pathSeperator);
     const otherPathParts = otherPath.split(pathSeperator);
+
+    // path is empty string which means it match with everything
+    if (!this.path) {
+      this.cachedParse = {
+        requestedPath: otherPath,
+        result: { isMatched: true, forwardPath: otherPath },
+        withParams: true,
+      };
+      return this.cachedParse.result;
+    }
 
     let match: boolean = true;
     let params: RequestedPathParseResult['params'];
@@ -85,7 +100,11 @@ export default abstract class Router<
 
     if (match) {
       parseResult.forwardPath = otherPathParts.slice(index).join(pathSeperator);
-      this.cachedParse = { requestedPath: otherPath, result: parseResult };
+      this.cachedParse = {
+        requestedPath: otherPath,
+        result: parseResult,
+        withParams: !!options?.populateParams,
+      };
     }
 
     return parseResult;
