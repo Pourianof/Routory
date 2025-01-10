@@ -37,7 +37,7 @@ export default abstract class Router<
       this.hasParam = this._path.includes(':');
     }
   }
-  protected get path() {
+  get path() {
     return this._path;
   }
 
@@ -159,7 +159,7 @@ export default abstract class Router<
     return next;
   }
 
-  _use(handlers: (RouteHandler<R> | Router)[]) {
+  _use(handlers: (RouteHandler<R> | Router<CTX>)[]) {
     if (handlers instanceof Array) {
       this.handlersQueue.push(...handlers);
       return;
