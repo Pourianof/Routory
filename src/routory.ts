@@ -6,6 +6,8 @@ import MethodRouteManager from './methodRouteManager';
 import RouterRespondMessage from './routerRespondMessage';
 import { pathSeperator } from './configs';
 import GlobalErrorHandler, { ErrorHandlerCallback } from './globalErrorHandler';
+import RouterFactory from './routerFactory';
+import { RoutoryFactory } from './routoryFactory';
 /**
  * Represent a relative route handler
  */
@@ -13,6 +15,11 @@ export default class Routory<
   CTX extends {} = {},
   R extends RouterRequest<CTX> = RouterRequest<CTX>,
 > extends Router<CTX> {
+  constructor(
+    private subRouterFactory: RouterFactory<CTX> = new RoutoryFactory(),
+  ) {
+    super();
+  }
   private _delegatingPathParsing(
     p: any,
     t: (Router | RouteHandlerCallback<R>)[],
@@ -24,11 +31,9 @@ export default class Routory<
     ) => {
       const val: (Router | RouteHandler)[] = x.map(
         (cb: RouteHandlerCallback<R> | Router) =>
-          cb instanceof Routory
-            ? ((cb.path = p), cb)
-            : cb instanceof Router
-              ? cb
-              : ({ cb, method } as RouteHandler),
+          cb instanceof Routory || cb instanceof Router
+            ? (((cb as any).path = ''), cb)
+            : ({ cb, method } as RouteHandler),
       );
       targetRouter._use(val);
     };
@@ -36,21 +41,20 @@ export default class Routory<
 
     let parent: Router<CTX> = this;
 
+    // if any path specidied we create a new router to handle that route
     if (isPathSpecified) {
       p = p.trim();
-      if (
-        p &&
-        p !== pathSeperator &&
-        !(t[0] instanceof Routory && t.length === 1)
-      ) {
-        parent = new MethodRouteManager(p, method);
-        this.handlersQueue.push(parent);
+      if (p && p !== pathSeperator) {
+        if (method != 'use') {
+          parent = new MethodRouteManager(p, method);
+        } else {
+          parent = this.subRouterFactory.create();
+          (parent as Routory).path = p;
+        }
+        this._use([parent]);
       }
     } else {
-      if ((p as Function).length === 4) {
-        GlobalErrorHandler.instance.registerErrorHandlerCallback(p);
-        return this;
-      }
+      // prepend the first argumant which was not a path but a handler
       t.unshift(p);
       p = pathSeperator;
     }
@@ -59,9 +63,14 @@ export default class Routory<
     return this;
   }
 
+  handleErrorGlobally(handler: ErrorHandlerCallback) {
+    GlobalErrorHandler.instance.registerErrorHandlerCallback(handler);
+  }
+
   route(path: string) {
-    const newRouter = new Routory<CTX>();
-    this.use(path, newRouter);
+    const newRouter = this.subRouterFactory.create();
+    (newRouter as Routory).path = path;
+    this._use([newRouter]);
     return newRouter;
   }
 
