@@ -37,6 +37,8 @@ class RouterConcreteSUT extends Router {
   }
 }
 
+function cacheTest() {}
+
 describe('Routory routering base engine test', () => {
   describe('Router instance base engine', () => {
     let routerSUT: RouterConcreteSUT;
@@ -62,6 +64,18 @@ describe('Routory routering base engine test', () => {
     });
 
     describe('Router.parsePath check is input route path belong to router path', () => {
+      it('should match to any requested path if the router path is "/" or empty ""', () => {
+        // Arrange
+        routerSUT.path = '/';
+
+        // Action
+        const parseResult = routerSUT.parsePath('a/b', RequestMethods.GET);
+
+        // Assert
+        expect(parseResult.isMatched).toBeTruthy();
+        expect(parseResult.forwardPath).toBe('a/b');
+      });
+
       it('should not match if input route path not normalized', () => {
         // arrrange
 
@@ -131,45 +145,102 @@ describe('Routory routering base engine test', () => {
         expect(hasMatched.forwardPath).toBeUndefined();
       });
 
-      it('should return the cached parse result on duplicate request path', () => {
-        // arrrange
+      describe('caching the parsePath result', () => {
         const requestedPath = 'a/b/c/d';
-
         let _cachedParse: RequestedPathParseResult | undefined;
-        const routerParsdCachePropGetter = jest.fn().mockImplementation(() => {
-          return _cachedParse;
-        });
-        const routerParsedCachePropSetter = jest
-          .fn()
-          .mockImplementation((val: RequestedPathParseResult) => {
-            _cachedParse = val;
+        let routerParsdCachePropGetter: jest.Mock;
+        let routerParsedCachePropSetter: jest.Mock;
+
+        beforeEach(() => {
+          routerParsdCachePropGetter = jest.fn().mockImplementation(() => {
+            return _cachedParse;
           });
+          routerParsedCachePropSetter = jest
+            .fn()
+            .mockImplementation((val: RequestedPathParseResult) => {
+              _cachedParse = val;
+            });
 
-        Object.defineProperty(routerSUT, 'cachedParse', {
-          get: routerParsdCachePropGetter,
-          set: routerParsedCachePropSetter,
+          Object.defineProperty(routerSUT, 'cachedParse', {
+            get: routerParsdCachePropGetter,
+            set: routerParsedCachePropSetter,
+          });
         });
 
-        // actual
-        const firstAttemptResult = routerSUT.parsePath(
-          requestedPath,
-          RequestMethods.POST,
-        );
-        const secondAttemptResult = routerSUT.parsePath(
-          requestedPath,
-          RequestMethods.POST,
-        );
+        it('should return the cached parse result on duplicate request path', () => {
+          // actual
+          const firstAttemptResult = routerSUT.parsePath(
+            requestedPath,
+            RequestMethods.POST,
+          );
+          const secondAttemptResult = routerSUT.parsePath(
+            requestedPath,
+            RequestMethods.POST,
+          );
 
-        //assert
-        expect(firstAttemptResult).toBe(secondAttemptResult);
-        expect(routerParsedCachePropSetter).toHaveBeenCalledWith<
-          [
-            {
-              requestedPath: string;
-              result: RequestedPathParseResult;
-            },
-          ]
-        >({ requestedPath, result: { isMatched: true, forwardPath: 'c/d' } });
+          //assert
+          expect(firstAttemptResult).toBe(secondAttemptResult);
+          expect(routerParsedCachePropSetter).toHaveBeenCalledWith<
+            [
+              {
+                requestedPath: string;
+                result: RequestedPathParseResult;
+                withParams: boolean;
+              },
+            ]
+          >({
+            requestedPath,
+            result: { isMatched: true, forwardPath: 'c/d' },
+            withParams: false,
+          });
+        });
+
+        it('should rerun the process if the new options set which not set before', () => {
+          // actual
+          const firstAttemptResult = routerSUT.parsePath(
+            requestedPath,
+            RequestMethods.POST,
+          );
+
+          const secondAttemptResult = routerSUT.parsePath(
+            requestedPath,
+            RequestMethods.POST,
+            { populateParams: true },
+          );
+
+          const thirdAttemptResult = routerSUT.parsePath(
+            requestedPath,
+            RequestMethods.POST,
+            { populateParams: true },
+          );
+
+          const fourthAttemptResult = routerSUT.parsePath(
+            requestedPath,
+            RequestMethods.POST,
+            { populateParams: true },
+          );
+
+          //assert
+          expect(firstAttemptResult).not.toBe(secondAttemptResult);
+          expect(secondAttemptResult).toBe(thirdAttemptResult);
+          expect(thirdAttemptResult).toBe(fourthAttemptResult);
+
+          expect(routerParsedCachePropSetter).toHaveBeenCalledTimes(2);
+
+          expect(routerParsedCachePropSetter).toHaveBeenNthCalledWith<
+            [
+              {
+                requestedPath: string;
+                result: RequestedPathParseResult;
+                withParams: boolean;
+              },
+            ]
+          >(2, {
+            requestedPath,
+            result: { isMatched: true, forwardPath: 'c/d' },
+            withParams: true,
+          });
+        });
       });
 
       it('should store params in parse result', () => {
