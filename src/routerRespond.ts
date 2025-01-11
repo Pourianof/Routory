@@ -2,7 +2,11 @@ import Notifier from '@pourianof/notifier';
 import RouterRespondMessage from './routerRespondMessage';
 import { MultipleTimeReponsing } from './exceptions';
 
-type Resolver = (val: any) => any;
+export interface ResponseFormat {
+  status: { code: number; message: string };
+  data: any;
+}
+type Resolver = (val: ResponseFormat) => any;
 
 enum RespondState {
   NOT_RECIEVED,
@@ -51,7 +55,7 @@ export default class RouterRespond extends Notifier<'onrespond'> {
   }
 
   private provideFormattedResponseForSending(): RouterRespondMessage | string {
-    const response = {
+    const response: ResponseFormat = {
       data: this.respondValue,
       status: { code: this.statusCode, message: this.statusMessage },
     };
@@ -62,6 +66,7 @@ export default class RouterRespond extends Notifier<'onrespond'> {
 
   then(res: Resolver) {
     this.onRespond(res);
+    return this;
   }
 
   private invokeListeners() {
@@ -71,7 +76,9 @@ export default class RouterRespond extends Notifier<'onrespond'> {
 
   // Allow other part of programs to listen when a respond sent
   onRespond(listener: Resolver) {
-    this.addListener('onrespond', listener);
+    this.addListener('onrespond', (event) => {
+      listener(event.data);
+    });
     if (this.isDataSended) {
       this.invokeListeners();
     }
