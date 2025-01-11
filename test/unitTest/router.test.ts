@@ -152,6 +152,7 @@ describe('Routory routering base engine test', () => {
         let routerParsedCachePropSetter: jest.Mock;
 
         beforeEach(() => {
+          _cachedParse = undefined;
           routerParsdCachePropGetter = jest.fn().mockImplementation(() => {
             return _cachedParse;
           });
@@ -225,7 +226,8 @@ describe('Routory routering base engine test', () => {
           expect(secondAttemptResult).toBe(thirdAttemptResult);
           expect(thirdAttemptResult).toBe(fourthAttemptResult);
 
-          expect(routerParsedCachePropSetter).toHaveBeenCalledTimes(2);
+          console.log(routerParsedCachePropSetter.mock.calls.length);
+          expect(routerParsedCachePropSetter.mock.calls.length).toBe(2);
 
           expect(routerParsedCachePropSetter).toHaveBeenNthCalledWith<
             [
