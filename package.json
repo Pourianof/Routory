@@ -1,6 +1,6 @@
 {
   "name": "routory",
-  "version": "1.0.0",
+  "version": "0.1.0+development",
   "description": "A semi expressJs routing functionality with different implementation and free environment use",
   "main": "dist/routory.js",
   "types": "dist",
@@ -19,7 +19,7 @@
     "watch": "webpack --watch"
   },
   "author": "Pooria <xxpooriaxx@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^20.8.9",
@@ -41,5 +41,9 @@
   },
   "dependencies": {
     "@pourianof/notifier": "^1.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pourianof/routory"
   }
 }
