@@ -128,6 +128,8 @@ function passRequestToRouter(inputRequest) {
 }
 ```
 
+> The message data will be accessible through `RouterRequest.body`
+
 With `onMessage` method the router begin to parse the url parameter and execute the matching handlers and forward the request to sub-routers.
 
 This method provide a request(`RouterRequest`) and respond(`RouterRespond`) objects and then flows them on handlers, means that they forward to next matching handlers(callbacks or sub-routers callbacks) without replacing with new instances.
@@ -167,3 +169,42 @@ router.get('/users', (req, res, next) => {
 
 - `json`: It tries to stringify the passed data as json format
 - `send`: It expose the data as it raw format
+
+# Path strucure
+
+As indicated before, we can specify paths in some contexts which it cause the request object routed to the correct handlers. We can use some structure in paths which could help to genaralize or parameterize the path.
+In this context `path-part` refer to the string between two slash(/) in path. For example in path "/a/b/c/d" the path-parts are: [a, b, c, d]
+
+## Parameters in path
+
+We can define the path-part as parameter. In this case this path-part can match with any string and the matched part will save as parameter to request object. The params in path will save in `params` property of `RouterRequest`.
+In Routory, a param is define when the path-part get start with color(:) character. Like "/a/:par1/c", which "par1" will be param and when some input request with path like "/a/some-str/c" get recieved, then a map of "par1" to "some-str" will save in `RouterRequst` object.
+For example:
+
+```js
+router.get(
+    '/a/param-1/b'
+    (req, res, next)=>{
+        // the param is accessible through req.params["param-1"]
+        console.log(req.params["param-1"]); // it log : some-value
+    }
+);
+
+router.onMessage({
+    ...
+    url: "/a/some-value/c"
+}, {})
+```
+
+# Context objcet
+
+We can pass a second object to `onMessage` method as **Context object**.
+The purpose of this object is to flow an object across with `RouterRequest` object through handlers. Actually it can contains some data or helpers functionalities which can be accessible from all handlers.For example you may wanna make the database wrapper be accessible or some variable data or ..
+
+```js
+router.get(somePath, async (req, res, next) => {
+  const users = await req.context.db.getUsers(req.body);
+});
+
+router.onMessage(message, { db: dbConnection, utils: helperFunctions });
+```
