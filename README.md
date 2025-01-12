@@ -15,7 +15,6 @@ The [Routory] class is the main entry for using routering features.
 
 ```js
 import Routory from 'routory';
-
 const router = new Routory();
 ```
 
@@ -112,3 +111,59 @@ import usersRouter from './users';
 ...
 apiRouter.use('/users', usersRouter); // Delegate the requests about users to the [usersRouter] router handler
 ```
+
+# Handle the input requests
+
+For handling the input requests, it should be convert to `RouterMessage` format and then pass to the root router using `.onMessage` method.
+
+```js
+function passRequestToRouter(inputRequest) {
+  const message = {
+    method: inputRequest.desiredMethod,
+    url: inputRequest.url,
+    data: inputRequest.body,
+  };
+
+  router.onMessage(message, {});
+}
+```
+
+With `onMessage` method the router begin to parse the url parameter and execute the matching handlers and forward the request to sub-routers.
+
+This method provide a request(`RouterRequest`) and respond(`RouterRespond`) objects and then flows them on handlers, means that they forward to next matching handlers(callbacks or sub-routers callbacks) without replacing with new instances.
+
+This method return the instantiated `RouterRespond` object. This object can be used to wait for the response to be ready and thus complete the response process. `RouterRespond` is a Promise-like object with `then` method which could be used in `await` syntax. There are 3 ways to wait for the response data to be provided by the router handlers:
+
+```js
+const respond = router.onMessage(message, {});
+// 1. with [onRespond]
+respond.onRespond((response) => {
+  // Format is like :
+  // {
+  //   status: { code: number, message: string }
+  //   data: any
+  // }
+});
+
+// 2. with [then] method
+roespond.then((response) => {
+  /* handle */
+});
+
+// 3. with [onRespond] method
+const response = await respond;
+// handle response
+```
+
+A `RouterRespond` object moves to "Ready" state when any data get passed to it using `send` or `json` methods. And when it happened, it not possible to recall the `send` or `json` methods and if do so, it will throw an exception.
+
+```js
+router.get('/users', (req, res, next) => {
+  res.json([
+    // all users
+  ]);
+});
+```
+
+- `json`: It tries to stringify the passed data as json format
+- `send`: It expose the data as it raw format
