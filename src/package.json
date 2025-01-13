@@ -12,6 +12,7 @@
     "url": "git+https://github.com/Pourianof/routory"
   },
   "dependencies": {
-    "@pourianof/notifier": "^1.2.2"
+    "@pourianof/notifier": "^1.2.2",
+    "commander": "^13.0.0"
   }
 }

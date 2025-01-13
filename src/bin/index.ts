@@ -63,10 +63,13 @@ function writeClassFile(
   className: string,
   outputPath?: string,
 ) {
-  fs.writeFileSync(getOutputPath(className, outputPath), classString, 'utf8');
+  const filePath = getOutputPath(className, outputPath);
+  fs.writeFileSync(filePath, classString, 'utf8');
+  console.log(`✅ class have generated at path:\n${filePath}`);
 }
 
 function jsonConfigs(filePath: string) {
+  console.log('==== Generate via JSON Configs ====');
   const { className, methods, outFilePath } = JSON.parse(
     fs.readFileSync(getAbsolutePathFromCWD(filePath), 'utf8'),
   );
@@ -75,10 +78,18 @@ function jsonConfigs(filePath: string) {
 }
 
 function cliConfigs(className: string, methods: string, output?: string) {
+  console.log('==== Generate via CLI Configs ====');
+  console.log('Configs:');
+  console.log(`\tClass name: ${className}`);
+  console.log(`\tFile output path: ${output ?? '[NO-PATH]'}`);
+  console.log(`\tSpecified Methods:`);
+
   const methodData = methods.split('+').reduce((prev, cur) => {
     const methodInfo = cur.trim().split(':');
+    console.log(`\t\t${methodInfo[0].trim()} : ${methodInfo[1].trim()}`);
     return { ...prev, ...{ [methodInfo[0].trim()]: methodInfo[1].trim() } };
   }, {});
+  console.log('==================================');
   const classString = createRoutoryClass(methodData, className.trim());
   writeClassFile(classString, className, output);
 }
@@ -104,8 +115,6 @@ function start() {
   program.parse();
 
   const options = program.opts();
-
-  console.log(options);
 
   if (options.json) {
     jsonConfigs(options.json);
