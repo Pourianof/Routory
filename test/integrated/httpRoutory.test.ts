@@ -1,13 +1,14 @@
-import Routory, {
+import {
+  HTTPRoutory,
   RequestMethods,
   RouterMessage,
   RouterRequest,
   RouterRespond,
-} from '../../src/routory';
+} from '../../src/index';
 
 describe('Routory', () => {
-  const router = new Routory();
-  const testSubRouter = new Routory();
+  const router = new HTTPRoutory();
+  const testSubRouter = new HTTPRoutory();
 
   router.use('/test', testSubRouter);
 

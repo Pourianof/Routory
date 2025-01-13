@@ -18,69 +18,28 @@ import MethodRouteManager from '../../src/methodRouteManager';
 import { pathNormalizing } from '../../src/routeParsingUtils';
 import Router, { RouteHandlerCallback } from '../../src/router';
 import RouterFactory from '../../src/routerFactory';
-import Routory, {
+import {
+  Routory,
   RequestMethods,
   RouterMessage,
   RouterRequest,
   RouterRespond,
-} from '../../src/routory';
+} from '../../src/index';
+
+class RoutoryMock extends Routory<RoutoryMock> {
+  constructor() {
+    super({
+      create() {
+        return new RoutoryMock();
+      },
+    });
+  }
+}
 
 describe('Router expose the api for handling requested path by the type of request method', () => {
-  let router: Routory;
+  let router: RoutoryMock;
   beforeEach(() => {
-    router = new Routory();
-  });
-
-  it('should delegate all methods with same name as available request methods to _delegatingPathParsing', () => {
-    // Arrange
-    const delegatedSpy = ((router as any)._delegatingPathParsing = jest.fn());
-
-    // Action
-    router.get('a');
-    router.post('b');
-    router.patch('c');
-    router.delete('d');
-    router.put('e');
-    router.use('f');
-
-    // Assert
-    expect(delegatedSpy).toHaveBeenCalledTimes(6);
-    expect(delegatedSpy).toHaveBeenNthCalledWith(
-      1,
-      'a',
-      expect.any(Array),
-      RequestMethods.GET,
-    );
-    expect(delegatedSpy).toHaveBeenNthCalledWith(
-      2,
-      'b',
-      expect.any(Array),
-      RequestMethods.POST,
-    );
-    expect(delegatedSpy).toHaveBeenNthCalledWith(
-      3,
-      'c',
-      expect.any(Array),
-      RequestMethods.PATCH,
-    );
-    expect(delegatedSpy).toHaveBeenNthCalledWith(
-      4,
-      'd',
-      expect.any(Array),
-      RequestMethods.DELETE,
-    );
-    expect(delegatedSpy).toHaveBeenNthCalledWith(
-      5,
-      'e',
-      expect.any(Array),
-      RequestMethods.PUT,
-    );
-    expect(delegatedSpy).toHaveBeenNthCalledWith(
-      6,
-      'f',
-      expect.any(Array),
-      'use',
-    );
+    router = new RoutoryMock();
   });
 
   describe('All handlers and its context(path and method they handle) pass to _delegatePathParsing', () => {
@@ -136,11 +95,11 @@ describe('Router expose the api for handling requested path by the type of reque
   it(`should register passed routers through [use] method with specified 
     path and reset sub-router path to empty path to accept sub-route paths handler`, () => {
     // Arrange
-    const subRouter = new Routory();
+    const subRouter = new RoutoryMock();
     (subRouter as any).path = 'e/f';
     router._use = jest.fn();
 
-    const internalRouter = new Routory(); // router to handle specified path
+    const internalRouter = new RoutoryMock(); // router to handle specified path
     jest.spyOn(internalRouter, '_use').mockImplementation(() => {});
     const routerFactoryStub: RouterFactory = {
       create: jest.fn().mockReturnValue(internalRouter),
@@ -152,14 +111,14 @@ describe('Router expose the api for handling requested path by the type of reque
 
     // Assert
     expect((subRouter as any).path).toBe('');
-    expect(router._use).toHaveBeenCalledWith([expect.any(Routory)]);
+    expect(router._use).toHaveBeenCalledWith([expect.any(RoutoryMock)]);
     expect(routerFactoryStub.create).toHaveBeenCalled();
     expect(internalRouter._use).toHaveBeenCalledWith([subRouter]);
   });
 
   it('should register handlers directly if no path specified', () => {
     // Arrange
-    const routerHandler = new Routory();
+    const routerHandler = new RoutoryMock();
     const callbackHandler = jest.fn();
     const callbackHandler2 = jest.fn();
 
@@ -167,17 +126,11 @@ describe('Router expose the api for handling requested path by the type of reque
 
     // Action
     router.use(routerHandler, callbackHandler);
-    router.get(callbackHandler, callbackHandler2);
 
     // Assert
     expect(_use).toHaveBeenNthCalledWith(1, [
       routerHandler,
       { cb: callbackHandler, method: 'use' },
-    ]);
-
-    expect(_use).toHaveBeenNthCalledWith(2, [
-      { cb: callbackHandler, method: 'GET' },
-      { cb: callbackHandler2, method: 'GET' },
     ]);
   });
 
@@ -196,7 +149,7 @@ describe('Router expose the api for handling requested path by the type of reque
 
   it('should create new sub-router object with factory and register it and return as reference', () => {
     // Arrange
-    const subRouter = new Routory();
+    const subRouter = new RoutoryMock();
     const factory = ((router as any).subRouterFactory.create = jest
       .fn()
       .mockReturnValue(subRouter));
