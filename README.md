@@ -66,8 +66,8 @@ The process is straightforward so i suggest two solution:
 
 #### Using code generator
 
-I provide a script which help you to generate the code needed for the class and also it populate the class with intented methods.
-The way how you can work with this generator have described in **[Code generator](#Bin)**.
+I provided a script which help you to generate the code needed for the class and also it populate the class with intented methods.
+The way how you can work with this generator described in **[Code generator](#Bin)**.
 
 #### Extending `Routory` class
 
