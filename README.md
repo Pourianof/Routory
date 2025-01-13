@@ -20,29 +20,7 @@ const router = new Routory();
 
 ## Methods
 
-Just like Express.js, the main 5 HTTP methods(GET, POST, PUT, PATCH, DELETE) got mirrored as method members of Routory class.
-So you can register your handlers for intented Methods.
-
-```js
-router.get(
-  (req, res, next) => {
-    // code for handling
-    next(); // for executing next handler callback
-  },
-  (req, res, next) => {
-    // code for handling
-  },
-);
-```
-
-You can also define path for each of these methods. It mean the handlers get executed only if the requested path get match with specified path.
-
-```js
-router.get('/a/b/c', (req, res, next) => {
-  // It get executed only if the specified path is a sub-path of requested path(req.relativePath)
-  // like: /a/b/c or /a/b/c/d/e or ...
-});
-```
+At update `0.2.0` the HTTP-Methods had removed from the routory class and all they located at a seperate class named HTTPRoutory class.(For more information about this class see [This section](#httproutory))
 
 ### Routory.use
 
@@ -64,7 +42,7 @@ With `route` method you can delegate handling a scope of paths to another router
 
 ```js
 const eRouter = router.route('/e');
-eRouter.get(...).post(...);
+eRouter.methName1(...).methName2(...);
 ```
 
 In this example we delegate each request which recieved from main router and requested the "e" path, to new router named "eRouter".
@@ -77,6 +55,98 @@ This method can be used for registering callback handlers for handling the error
 router.handleErrorGlobally((err, req, res, next) => {
   // handle it
   next(); // invoke the next callback which registered after this one
+});
+```
+
+### **User-Defined methods**
+
+I tried to make it possible to define arbitrary method names for registering handlers and also extending the router structure by creating sub-routers and attach them to upper routers.
+To upcoming with these two problems, I came to the conclusion that it was necessary to write a new class which extending `Routory` class.
+The process is straightforward so i suggest two solution:
+
+#### Using code generator
+
+I provide a script which help you to generate the code needed for the class and also it populate the class with intented methods.
+The way how you can work with this generator have described in **[Code generator](#Bin)**.
+
+#### Extending `Routory` class
+
+Also you can extend the `Routory` class yourself and use that class as your router instead of my classes.
+For doing that these is some points you should notice:
+
+1. **Class declaration:**
+   When you extending `Routory` class you should pass your class as generic type to `Routory` class. it needed for some methods in `Routory` class to define the return type as your class type.
+
+```js
+class YourClassName extends Routory<YourClassName> {
+    constructor(){
+        super(new YourClassFactory());
+    }
+    // body
+}
+
+class YourClassFactory implements RouterFactory<any, any, YourClassName>{
+    create(){
+        return new YourClassName();
+    }
+}
+```
+
+Also as you can see, you have to define a factory class which has a `create` method which return your router class(`YourClassName`). And then you must instantiate this factory class and pass it to super class.
+You could use a literal object with `create` method too, like: `{ create: ()=> new YourClassName()  }`.
+
+2. **Method definition:**
+   At your `YourClassName` class you should:
+   If you are using **_Typescript_** then for each method should have:
+
+```ts
+methodName(
+    path: string,
+    ...RouteHandlerCallback: RouteHandlerCallback[]
+): HTTPRoutory;
+methodName(...routerHandler: RouteHandlerCallback[]): YourClassName;
+methodName(p: any, ...r: any) {
+    return this._delegatingPathParsing(p, r, "YOUR_MATCHER_STRING");
+}
+```
+
+And if **_JavaScript_** the you should have:
+
+```js
+methodName(p, ...r) {
+    return this._delegatingPathParsing(p, r, RequestMethods.GET);
+}
+```
+
+There is some placeholder in above snnipets:
+`YourClassName`: Name for the router class. For example HTTPRoutory, MyRouter or any name you want
+`methodName`: Name for methods. For example for HTTPRoutory we have `get`, `post` and so on. You can choose any naem you want.
+`"YOUR_MATCHER_STRING"`: This one is important in the way that it gonna to used for parsing the request objects `method` propery, so it must be different from the ones in other methods. For example this string for `HTTPRoutory.get` defined as `"GET"` or for `HTTPRoutory.post` is `"POST"` and other. It could be any string as long as it different from other methods.
+
+## HTTPRoutory
+
+As mentioned above, we moved the HTTP-base method names like get, post, ... from `Routory` class to `HTTPRoutory`.
+Just like Express.js, the main 5 HTTP methods(GET, POST, PUT, PATCH, DELETE) got mirrored as method members of `HTTPRoutory` class.
+So you can register your handlers for intented Methods.
+
+```js
+router.get(
+  (req, res, next) => {
+    // code for handling
+    next(); // for executing next handler callback
+  },
+  (req, res, next) => {
+    // code for handling
+  },
+);
+```
+
+You can also define path for each of these methods. It mean the handlers get executed only if the requested path get match with specified path.
+
+```js
+router.get('/a/b/c', (req, res, next) => {
+  // It get executed only if the specified path is a sub-path of requested path(req.relativePath)
+  // like: /a/b/c or /a/b/c/d/e or ...
 });
 ```
 
@@ -160,7 +230,7 @@ const response = await respond;
 A `RouterRespond` object moves to "Ready" state when any data get passed to it using `send` or `json` methods. And when it happened, it not possible to recall the `send` or `json` methods and if do so, it will throw an exception.
 
 ```js
-router.get('/users', (req, res, next) => {
+router.methName('/users', (req, res, next) => {
   res.json([
     // all users
   ]);
@@ -182,7 +252,7 @@ In Routory, a param is define when the path-part get start with color(:) charact
 For example:
 
 ```js
-router.get(
+router.methName1(
     '/a/param-1/b'
     (req, res, next)=>{
         // the param is accessible through req.params["param-1"]
@@ -207,4 +277,87 @@ router.get(somePath, async (req, res, next) => {
 });
 
 router.onMessage(message, { db: dbConnection, utils: helperFunctions });
+```
+
+# Code generator <a id="Bin"></a>
+
+As mentioned before, we provide some code generator script for generate the code for defining your router classes. Actually this script automate the process defined in [This section](#extending-routory-class).
+
+For using the code generator you could use this syntax
+
+> npx routory [options]
+
+The options are used to providing the configuration for defining class and methods and also the path of output file.
+The configurations could be provided in two way: 1- CLI arguments 2- json file
+In both ways, you have to provide the following configs.
+
+1. Define the class:
+
+CLI:
+
+> npx routory -c YourClassName
+
+JSON:
+
+```json
+{
+  "className": "YourClassName"
+}
+```
+
+2. Define Methods:
+
+CLI:
+
+> npx routory -m methName1:Method_Matcher+methName2:Method_Matcher2+...
+
+The format is obvious. The method name + colo + The matcher string for that method.
+Then this could be repeated by plus character.
+
+JSON:
+
+```json
+{
+  "methods":{
+    "methName1": "Method_Matcher1",
+    "methName2": "Method_Matcher2",
+    ...
+  }
+}
+```
+
+3. Output path:
+
+CLI:
+
+> npx routory -o ./src/myRouter.ts
+
+JSON:
+
+```json
+{
+  "output": "./src/myRouter.ts"
+}
+```
+
+## Examples
+
+CLI:
+
+> npx routory -c HTTPRoutory -m get:GET+post:POST+delete:DELETE -o ./src
+
+JSON:
+
+```json
+{
+  "className": "ExampleHTTPRoutory",
+  "methods": {
+    "get": "GET",
+    "post": "POST",
+    "delete": "DELETE",
+    "put": "PUT",
+    "patch": "PATCH"
+  },
+  "outFilePath": "./src"
+}
 ```
