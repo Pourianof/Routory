@@ -6,7 +6,9 @@
   "types": "routory.d.ts",
   "author": "Pouriya <PouriyaxAmini@gmail.com>",
   "license": "MIT",
-  "bin": "./bin/index.js",
+  "bin": {
+    "routory": "./index.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Pourianof/routory"
