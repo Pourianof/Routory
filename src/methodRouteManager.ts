@@ -4,10 +4,12 @@ import { RequestMethods } from './routerRequest';
 /**
  * Represent an absolute path Handler with one method
  */
-export default class MethodRouteManager extends Router {
+export default class MethodRouteManager<
+  METHS extends string[] = [],
+> extends Router {
   constructor(
     path: string,
-    private method: RequestMethods | 'use',
+    private method: string,
   ) {
     super();
     this.path = path;
