@@ -1,11 +1,12 @@
 {
   "name": "routory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A semi ExpressJs routing functionality with different implementation and free environment use",
   "main": "routory.js",
   "types": "routory.d.ts",
   "author": "Pouriya <PouriyaxAmini@gmail.com>",
   "license": "MIT",
+  "bin": "./bin/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Pourianof/routory"

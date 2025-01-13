@@ -1,5 +1,6 @@
 import RouterRespondMessage from './routerRespondMessage';
 import { RequestMethods, RouterRequest } from './routerRequest';
+import HTTPRoutory from './httpRoutory';
 import Router, { RouteHandlerCallback } from './router';
 import RouterRespond from './routerRespond';
 import RouterMessage from './routerMessage';
@@ -13,6 +14,7 @@ export {
   Router,
   RouterMessage,
   RequestMethods,
+  HTTPRoutory,
   RouteHandlerCallback,
   RouterFactory,
   Routory,
