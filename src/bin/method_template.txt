@@ -1,0 +1,8 @@
+  $$METHOD_NAME$$(
+    path: string,
+    ...RouteHandlerCallback: RouteHandlerCallback<R>[]
+  ): $$CLASS_NAME$$<CTX, R>;
+  $$METHOD_NAME$$(...routerHandler: RouteHandlerCallback<R>[]): $$CLASS_NAME$$<CTX, R>;
+  $$METHOD_NAME$$(p: any, ...r: any) {
+    return this._delegatingPathParsing(p, r, $$MATCHER_VALUE$$);
+  }

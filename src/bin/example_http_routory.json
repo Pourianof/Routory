@@ -1,0 +1,11 @@
+{
+  "className": "ExampleHTTPRoutory",
+  "methods": {
+    "get": "GET",
+    "post": "POST",
+    "delete": "DELETE",
+    "put": "PUT",
+    "patch": "PATCH"
+  },
+  "outFilePath": "./src"
+}

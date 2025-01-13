@@ -1,0 +1,27 @@
+import {
+  Routory,
+  RouterFactory,
+  RouteHandlerCallback,
+  RouterRequest,
+} from 'routory';
+
+export default class $$CLASS_NAME$$<
+  CTX extends {} = {},
+  R extends RouterRequest<CTX> = RouterRequest<CTX>,
+> extends Routory<$$CLASS_NAME$$<CTX, R>, CTX, R> {
+  constructor(){
+    super(new $$CLASS_NAME$$Factory<CTX, R>());
+  }
+$$METHODS_PLACEHOLDER$$
+}
+
+
+class $$CLASS_NAME$$Factory<
+  CTX extends {} = {},
+  R extends RouterRequest<CTX> = RouterRequest<CTX>,
+> implements RouterFactory<CTX, R, $$CLASS_NAME$$<CTX, R>>
+{
+  create() {
+    return new $$CLASS_NAME$$<CTX, R>();
+  }
+}
