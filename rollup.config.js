@@ -11,7 +11,7 @@ const distBinDir = path.join(destRootDir, 'bin');
 /** @type {import('rollup').RollupOptions} */
 const config = [
   {
-    input: 'src/routory.ts',
+    input: 'src/index.ts',
     output: {
       file: path.join(destRootDir, 'routory.js'),
       format: 'cjs',
@@ -70,7 +70,7 @@ const config = [
     ],
   },
   {
-    input: path.join(destRootDir, 'compiled', 'routory.d.ts'),
+    input: path.join(destRootDir, 'compiled', 'index.d.ts'),
     output: {
       file: path.join(destRootDir, 'routory.d.ts'),
       format: 'es',
