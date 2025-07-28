@@ -1,6 +1,6 @@
 {
   "name": "routory",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A semi ExpressJs routing functionality with different implementation and free environment use",
   "main": "routory.js",
   "types": "routory.d.ts",
