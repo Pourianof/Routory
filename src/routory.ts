@@ -1,11 +1,11 @@
-import Router, { RouteHandler, RouteHandlerCallback } from './router';
-import { RouterRequest } from './routerRequest';
-import RouterRespond from './routerRespond';
-import RouterMessage from './routerMessage';
-import MethodRouteManager from './methodRouteManager';
 import { pathSeperator } from './configs';
 import GlobalErrorHandler, { ErrorHandlerCallback } from './globalErrorHandler';
+import MethodRouteManager from './methodRouteManager';
+import Router, { RouteHandler, RouteHandlerCallback } from './router';
 import RouterFactory from './routerFactory';
+import RouterMessage from './routerMessage';
+import { RouterRequest } from './routerRequest';
+import RouterRespond from './routerRespond';
 
 abstract class BaseRoutory {}
 
@@ -63,8 +63,10 @@ export default abstract class Routory<
     return this as never as F;
   }
 
-  handleErrorGlobally(handler: ErrorHandlerCallback) {
-    GlobalErrorHandler.instance.registerErrorHandlerCallback(handler);
+  handleErrorGlobally(handler: ErrorHandlerCallback<R>) {
+    GlobalErrorHandler.instance.registerErrorHandlerCallback(
+      handler as ErrorHandlerCallback,
+    );
   }
 
   route(path: string): F {
