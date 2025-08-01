@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "target": "es2016",
-    "module": "nodenext",
+    "module": "esnext",
     "rootDir": "src",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "allowJs": true,
     "declaration": true,
     "sourceMap": true,
