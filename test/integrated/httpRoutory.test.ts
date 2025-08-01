@@ -6,7 +6,46 @@ import {
   RouterRespond,
 } from '../../src/index';
 
-describe('Routory', () => {
+describe('test HTTPRoutory main router', () => {
+  let router: HTTPRoutory;
+  beforeEach(() => {
+    router = new HTTPRoutory();
+  });
+
+  it('should register a GET handler', () => {
+    const getHandler = jest.fn();
+    router.use('/test', (req, res, next) => {
+      next();
+    });
+    router.get('/test', getHandler);
+
+    const message: RouterMessage = {
+      method: RequestMethods.GET,
+      url: '/test',
+    };
+
+    router.onMessage(message, {});
+
+    expect(getHandler).toHaveBeenCalled();
+  });
+
+  it('should register trigger handler with two path parameter and values', () => {
+    const getHandler = jest.fn();
+
+    router.get('/test/:param1/:param2', getHandler);
+
+    const message: RouterMessage = {
+      method: RequestMethods.GET,
+      url: '/test/value1/value2',
+    };
+
+    router.onMessage(message, {});
+
+    expect(getHandler).toHaveBeenCalled();
+  });
+});
+
+describe('test HTTPRoutory sub-router extension', () => {
   const router = new HTTPRoutory();
   const testSubRouter = new HTTPRoutory();
 
@@ -17,6 +56,9 @@ describe('Routory', () => {
   testSubRouter.get(testSRGetHandler);
   testSubRouter.post(testSRPostHandler);
 
+  const testPathedGetHandler = jest.fn();
+  testSubRouter.get('/pathed', testPathedGetHandler);
+
   const firstRouterFileGetterHandler = jest.fn();
   const secondRouterFileGetterHandler = jest.fn();
 
@@ -25,6 +67,33 @@ describe('Routory', () => {
     firstRouterFileGetterHandler,
     secondRouterFileGetterHandler,
   );
+
+  it(`should trigger and invoke the testSubRouter get callback
+     handler on *GET /test* request`, () => {
+    // Arrange
+    const message: RouterMessage = {
+      method: RequestMethods.GET,
+      url: '/test/pathed',
+    };
+
+    // Action
+    router.onMessage(message, {});
+
+    // Assert
+    expect(testPathedGetHandler).toHaveBeenCalled();
+  });
+
+  it('should trigger and invoke the router get callback handler on *GET /test* request', () => {
+    // Arrange
+    const message: RouterMessage = { method: RequestMethods.GET, url: '/test' };
+
+    // Action
+    router.onMessage(message, {});
+
+    // Assert
+    expect(testSRGetHandler).toHaveBeenCalled();
+    expect(testSRPostHandler).not.toHaveBeenCalled();
+  });
 
   it(`should trigger and invoke the testSubRouter get callback
      handler on *GET /test* request`, () => {
