@@ -361,3 +361,7 @@ JSON:
   "outFilePath": "./src"
 }
 ```
+
+# Change logs
+
+`0.4.0` Fix the bug which caused same handler executed multiple times in some cases with each request that reach to that handler
