@@ -152,11 +152,17 @@ export default abstract class Router<
     method: RequestMethods,
     requestedPath?: string,
     startFromIndex: number = 0,
-  ) {
+  ):
+    | {
+        handler: Router<CTX> | RouteHandlerCallback<R>;
+        index: number;
+      }
+    | undefined {
     let next: Router<CTX> | RouteHandlerCallback<R> | undefined;
 
-    for (let i = startFromIndex; i < this.handlersQueue.length; i++) {
-      const handler = this.handlersQueue[i];
+    let index = startFromIndex;
+    for (; index < this.handlersQueue.length; index++) {
+      const handler = this.handlersQueue[index];
       const isRouter = handler instanceof Router;
       if (
         isRouter &&
@@ -175,7 +181,7 @@ export default abstract class Router<
       }
     }
 
-    return next;
+    return next ? { handler: next, index } : undefined;
   }
 
   _use(handlers: (RouteHandler<R> | Router<CTX>)[]) {

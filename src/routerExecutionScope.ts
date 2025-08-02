@@ -50,11 +50,23 @@ export default class RouterExecutionScope {
     this.populateParams();
     this.resetRelativePath();
 
-    const handler = this.routerDelegate.getHandlerFor(
+    const handlerResult = this.routerDelegate.getHandlerFor(
       this.req.method,
       this.analyseState.forwardPath,
-      this.index++,
+      this.index,
     );
+
+    if (!handlerResult) {
+      this.afterAll?.();
+      return;
+    }
+
+    const { handler, index } = handlerResult;
+    if (this.index <= index) {
+      this.index = index + 1;
+    } else {
+      this.afterAll?.();
+    }
 
     if (handler) {
       if (handler instanceof Router) {

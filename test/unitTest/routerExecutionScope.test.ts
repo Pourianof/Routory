@@ -30,7 +30,7 @@ class RouterMock extends Router {
   //     startFromIndex?: number,
   //   ) {}
   getHandlerFor = jest.fn<
-    RouterMock | RouteHandlerCallback | undefined,
+    { handler: RouterMock | RouteHandlerCallback; index: number } | undefined,
     [RequestMethods, string | undefined, number | undefined]
   >();
 
@@ -126,7 +126,10 @@ describe('RouterExecutionScope to define a scope or context to retain or reset s
     it('should forward control of execution to its sub-router', () => {
       // Arrange
       const subRouter = new RouterMock();
-      routerDelegateMock.getHandlerFor.mockReturnValueOnce(subRouter);
+      routerDelegateMock.getHandlerFor.mockReturnValueOnce({
+        handler: subRouter,
+        index: 0,
+      });
 
       // Action
       execScope.runNext();
@@ -143,7 +146,10 @@ describe('RouterExecutionScope to define a scope or context to retain or reset s
     it('should forward control of execution to its callback handler', () => {
       // Arrange
       const callbackHandler = jest.fn();
-      routerDelegateMock.getHandlerFor.mockReturnValueOnce(callbackHandler);
+      routerDelegateMock.getHandlerFor.mockReturnValueOnce({
+        handler: callbackHandler,
+        index: 0,
+      });
 
       // Action
       execScope.runNext();
@@ -163,7 +169,10 @@ describe('RouterExecutionScope to define a scope or context to retain or reset s
         .fn()
         .mockRejectedValue(new Error('test error'));
       const runNextSpy = jest.spyOn(execScope, 'runNext');
-      routerDelegateMock.getHandlerFor.mockReturnValueOnce(callbackHandler);
+      routerDelegateMock.getHandlerFor.mockReturnValueOnce({
+        handler: callbackHandler,
+        index: 0,
+      });
 
       // Action
       execScope.runNext();
@@ -223,7 +232,7 @@ describe('RouterExecutionScope to define a scope or context to retain or reset s
       ];
 
       routerDelegateMock.getHandlerFor.mockImplementation(() => {
-        return queue[invokeCounter];
+        return { handler: queue[invokeCounter], index: invokeCounter };
       });
 
       // Action

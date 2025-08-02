@@ -1,8 +1,8 @@
 jest.mock('../../src/routerExecutionScope');
-import RouterExecutionScope from '../../src/routerExecutionScope';
-import Router, { RequestedPathParseResult } from '../../src/router';
-import { RequestMethods, RouterRequest } from '../../src/routerRequest';
 import { HandleUnMachedRoutePathException } from '../../src/exceptions';
+import Router, { RequestedPathParseResult } from '../../src/router';
+import RouterExecutionScope from '../../src/routerExecutionScope';
+import { RequestMethods, RouterRequest } from '../../src/routerRequest';
 
 type HandlerCBMockType = jest.Mock<
   void,
@@ -401,14 +401,14 @@ describe('Routory routering base engine test', () => {
           .mockReturnValue({ isMatched: false });
 
         // Action
-        const handler = routerSUT.getHandlerFor(
+        const handlerResult = routerSUT.getHandlerFor(
           RequestMethods.POST,
           requestedPath,
           0,
         ); // Assert
 
         // Assert
-        expect(handler).toBe(useCBHandler);
+        expect(handlerResult?.handler).toBe(useCBHandler);
       });
 
       it('should return first matched of callback handler with specific method', () => {
@@ -418,10 +418,10 @@ describe('Routory routering base engine test', () => {
           .mockReturnValue({ isMatched: false });
 
         // Action
-        const handler = routerSUT.getHandlerFor(RequestMethods.POST);
+        const handlerResult = routerSUT.getHandlerFor(RequestMethods.POST);
 
         // Assert
-        expect(handler).toBe(postCBHandler);
+        expect(handlerResult?.handler).toBe(postCBHandler);
       });
 
       it('should return sub-router handler if it match with requested path', () => {
@@ -430,13 +430,13 @@ describe('Routory routering base engine test', () => {
         jest.spyOn(subRouter, 'parsePath').mockReturnValue({ isMatched: true });
 
         // Action
-        const handler = routerSUT.getHandlerFor(
+        const handlerResult = routerSUT.getHandlerFor(
           RequestMethods.POST,
           requestedPath,
           0,
         );
         // Assert
-        expect(handler).toBe(subRouter);
+        expect(handlerResult?.handler).toBe(subRouter);
       });
 
       it('should not return sub-router handler if no request path exist', () => {
@@ -457,21 +457,21 @@ describe('Routory routering base engine test', () => {
         jest.spyOn(subRouter, 'parsePath').mockReturnValue({ isMatched: true });
 
         // Action
-        const handler1 = routerSUT.getHandlerFor(
+        const handlerResult1 = routerSUT.getHandlerFor(
           RequestMethods.GET,
           requestedPath,
           index,
         );
 
-        const handler2 = routerSUT.getHandlerFor(
+        const handlerResult2 = routerSUT.getHandlerFor(
           RequestMethods.POST,
           requestedPath,
           index,
         );
 
         // Assert
-        expect(handler1).toBe(useCBHandler);
-        expect(handler2).toBe(postCBHandler);
+        expect(handlerResult1?.handler).toBe(useCBHandler);
+        expect(handlerResult2?.handler).toBe(postCBHandler);
       });
     });
 

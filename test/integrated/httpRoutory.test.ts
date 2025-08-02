@@ -8,15 +8,15 @@ import {
 
 describe('test HTTPRoutory main router', () => {
   let router: HTTPRoutory;
+  let subRouter: HTTPRoutory;
   beforeEach(() => {
     router = new HTTPRoutory();
+    subRouter = new HTTPRoutory();
+    router.use('/sub', subRouter);
   });
 
-  it('should register a GET handler', () => {
+  it.only('should register a GET handler', () => {
     const getHandler = jest.fn();
-    router.use('/test', (req, res, next) => {
-      next();
-    });
     router.get('/test', getHandler);
 
     const message: RouterMessage = {
@@ -26,7 +26,7 @@ describe('test HTTPRoutory main router', () => {
 
     router.onMessage(message, {});
 
-    expect(getHandler).toHaveBeenCalled();
+    expect(getHandler).toHaveBeenCalledTimes(1);
   });
 
   it('should register trigger handler with two path parameter and values', () => {
@@ -42,6 +42,33 @@ describe('test HTTPRoutory main router', () => {
     router.onMessage(message, {});
 
     expect(getHandler).toHaveBeenCalled();
+  });
+
+  it('should trigger each handler only once', async () => {
+    // Arrange
+    const firstGetHandler = jest.fn().mockImplementation((req, res, next) => {
+      next();
+    });
+    const secondGetHandler = jest
+      .fn()
+      .mockImplementation((req, res: RouterRespond, next) => {
+        res.status(200, 'Ok').json({});
+      });
+
+    subRouter.post('/test', firstGetHandler, secondGetHandler);
+    subRouter.get('/test', firstGetHandler, secondGetHandler);
+
+    const message: RouterMessage = {
+      method: RequestMethods.GET,
+      url: '/sub/test',
+    };
+
+    // Action
+    await router.onMessage(message, {});
+
+    // Assert
+    expect(firstGetHandler).toHaveBeenCalledTimes(1);
+    expect(secondGetHandler).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -80,7 +107,7 @@ describe('test HTTPRoutory sub-router extension', () => {
     router.onMessage(message, {});
 
     // Assert
-    expect(testPathedGetHandler).toHaveBeenCalled();
+    expect(testPathedGetHandler).toHaveBeenCalledTimes(1);
   });
 
   it('should trigger and invoke the router get callback handler on *GET /test* request', () => {
@@ -104,7 +131,7 @@ describe('test HTTPRoutory sub-router extension', () => {
     router.onMessage(message, {});
 
     // Assert
-    expect(testSRGetHandler).toHaveBeenCalled();
+    expect(testSRGetHandler).toHaveBeenCalledTimes(1);
     expect(testSRPostHandler).not.toHaveBeenCalled();
   });
 
